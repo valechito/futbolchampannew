@@ -74,8 +74,19 @@
       margin-left: 10px;
     }
 
-    .partido .info {
-      margin-top: 10px;
+    .noticia {
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+    }
+
+    .noticia:last-child {
+      border-bottom: none;
+    }
+
+    .noticia a {
+      color: #ff6f61;
+      text-decoration: none;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -109,7 +120,9 @@
 
     <section id="noticias">
       <h2>Noticias de fútbol</h2>
-      <p>Las últimas noticias sobre el mundo del fútbol.</p>
+      <div id="contenedorNoticias">
+        <!-- Las noticias se mostrarán aquí -->
+      </div>
     </section>
 
     <section id="debates">
@@ -127,15 +140,15 @@
   </footer>
 
   <script>
-    const apiKey = '9d228391755844b2b40f411a09232e2d'; // Tu clave de API
+    const apiKeyFootball = '9d228391755844b2b40f411a09232e2d'; // Tu clave de API para Football-Data
+    const apiKeyNews = 'TU_CLAVE_DE_NEWSAPI'; // Tu clave de API para NewsAPI
 
-    // Función para obtener los partidos de la API
     async function obtenerPartidos() {
       try {
         const url = 'https://api.football-data.org/v4/matches';
         const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
         const response = await fetch(proxyUrl + url, {
-          headers: { 'X-Auth-Token': apiKey }
+          headers: { 'X-Auth-Token': apiKeyFootball }
         });
         const data = await response.json();
 
@@ -146,7 +159,6 @@
       }
     }
 
-    // Función para mostrar el calendario general
     function mostrarCalendario(partidos) {
       const calendarioDiv = document.getElementById('calendarioPartidos');
       calendarioDiv.innerHTML = '';
@@ -163,34 +175,59 @@
       });
     }
 
-    // Función para mostrar los enfrentamientos del día
-   function mostrarEnfrentamientosDelDia(partidos) {
-  const enfrentamientosDiv = document.getElementById('partidosDia');
-  enfrentamientosDiv.innerHTML = '';
+    function mostrarEnfrentamientosDelDia(partidos) {
+      const enfrentamientosDiv = document.getElementById('partidosDia');
+      enfrentamientosDiv.innerHTML = '';
 
-  const hoy = new Date().toISOString().split('T')[0]; // Fecha de hoy en formato YYYY-MM-DD
+      const hoy = new Date().toISOString().split('T')[0];
 
-  const partidosHoy = partidos.filter(partido => partido.utcDate.startsWith(hoy));
+      const partidosHoy = partidos.filter(partido => partido.utcDate.startsWith(hoy));
 
-  partidosHoy.forEach(partido => {
-    const div = document.createElement('div');
-    div.classList.add('partido');
-    
-    const partidoEnVivo = partido.status === 'LIVE'; // Identificar si está en vivo
-    const marcador = partido.score.fullTime.homeTeam !== null ? `
-      Marcador: ${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam}<br>` : '';
-    const minutos = partidoEnVivo ? `Minutos: ${partido.minute || 'N/A'}<br>` : '';
+      partidosHoy.forEach(partido => {
+        const div = document.createElement('div');
+        div.classList.add('partido');
 
-    div.innerHTML = `
-      <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
-      Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
-      ${partidoEnVivo ? `<span class="en-vivo">En Vivo</span><br>${marcador}${minutos}` : ''}
-    `;
-    enfrentamientosDiv.appendChild(div);
+        const partidoEnVivo = partido.status === 'LIVE';
+        const marcador = partido.score.fullTime.homeTeam !== null ? `
+          Marcador: ${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam}<br>` : '';
+        const minutos = partidoEnVivo ? `Minutos: ${partido.minute || 'N/A'}<br>` : '';
+
+        div.innerHTML = `
+          <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
+          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
+          ${partidoEnVivo ? `<span class="en-vivo">En Vivo</span><br>${marcador}${minutos}` : ''}
+        `;
+        enfrentamientosDiv.appendChild(div);
       });
     }
 
-    // Función para agregar comentarios
+    async function obtenerNoticias() {
+      try {
+        const url = `https://newsapi.org/v2/everything?q=fútbol&language=es&apiKey=${apiKeyNews}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        mostrarNoticias(data.articles);
+      } catch (error) {
+        console.error('Error al obtener las noticias:', error);
+      }
+    }
+
+    function mostrarNoticias(noticias) {
+      const contenedorNoticias = document.getElementById('contenedorNoticias');
+      contenedorNoticias.innerHTML = '';
+
+      noticias.forEach(noticia => {
+        const div = document.createElement('div');
+        div.classList.add('noticia');
+        div.innerHTML = `
+          <a href="${noticia.url}" target="_blank">${noticia.title}</a><br>
+          <p>${noticia.description || ''}</p>
+        `;
+        contenedorNoticias.appendChild(div);
+      });
+    }
+
     function agregarComentario() {
       const comentarioInput = document.getElementById('comentarioInput');
       const comentarioText = comentarioInput.value.trim();
@@ -203,8 +240,10 @@
       }
     }
 
-    // Llamamos a la función para obtener los partidos cuando la página cargue
+    // Llamamos a las funciones para obtener los datos al cargar la página
     obtenerPartidos();
+    obtenerNoticias();
   </script>
 </body>
 </html>
+
