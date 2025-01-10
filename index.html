@@ -164,27 +164,29 @@
     }
 
     // Función para mostrar los enfrentamientos del día
-    function mostrarEnfrentamientosDelDia(partidos) {
-      const enfrentamientosDiv = document.getElementById('partidosDia');
-      enfrentamientosDiv.innerHTML = '';
+   function mostrarEnfrentamientosDelDia(partidos) {
+  const enfrentamientosDiv = document.getElementById('partidosDia');
+  enfrentamientosDiv.innerHTML = '';
 
-      const hoy = new Date().toISOString().split('T')[0]; // Fecha de hoy (formato YYYY-MM-DD)
+  const hoy = new Date().toISOString().split('T')[0]; // Fecha de hoy en formato YYYY-MM-DD
 
-      const partidosHoy = partidos.filter(partido => partido.utcDate.startsWith(hoy));
+  const partidosHoy = partidos.filter(partido => partido.utcDate.startsWith(hoy));
 
-      partidosHoy.forEach(partido => {
-        const div = document.createElement('div');
-        div.classList.add('partido');
-        const partidoEnVivo = partido.status === 'LIVE';
-        div.innerHTML = `
-          <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
-          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
-          ${partidoEnVivo ? `
-            <span class="en-vivo">En Vivo</span><br>
-            Marcador: ${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam}
-          ` : ''}
-        `;
-        enfrentamientosDiv.appendChild(div);
+  partidosHoy.forEach(partido => {
+    const div = document.createElement('div');
+    div.classList.add('partido');
+    
+    const partidoEnVivo = partido.status === 'LIVE'; // Identificar si está en vivo
+    const marcador = partido.score.fullTime.homeTeam !== null ? `
+      Marcador: ${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam}<br>` : '';
+    const minutos = partidoEnVivo ? `Minutos: ${partido.minute || 'N/A'}<br>` : '';
+
+    div.innerHTML = `
+      <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
+      Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
+      ${partidoEnVivo ? `<span class="en-vivo">En Vivo</span><br>${marcador}${minutos}` : ''}
+    `;
+    enfrentamientosDiv.appendChild(div);
       });
     }
 
