@@ -141,6 +141,7 @@
       </ul>
     </nav>
   </header>
+
   <main>
     <section id="enfrentamientos">
       <h2>Enfrentamientos del día</h2>
@@ -172,11 +173,11 @@
       </div>
     </section>
   </main>
+
   <footer>
     <p>© 2025 Fútbol Champán. Todos los derechos reservados.</p>
   </footer>
 
-  <!-- Aquí agregamos el código JavaScript -->
   <script>
     // Sustituir por tu propia clave API
     const apiKey = '9d228391755844b2b40f411a09232e2d'; // Reemplaza esto con tu clave de API
@@ -184,8 +185,10 @@
     // Función para obtener los partidos de la API
     async function obtenerPartidos() {
       try {
-        // Hacemos la solicitud a la API
-        const response = await fetch('https://api.football-data.org/v4/matches', {
+        // Usamos el proxy para evitar problemas de CORS
+        const url = 'https://api.football-data.org/v4/matches';
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Proxy que evita CORS
+        const response = await fetch(proxyUrl + url, {
           headers: {
             'X-Auth-Token': apiKey
           }
@@ -207,7 +210,7 @@
       partidos.forEach(partido => {
         const div = document.createElement('div');
         div.classList.add('partido');
-        div.innerHTML = `
+        div.innerHTML = ` 
           <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}
