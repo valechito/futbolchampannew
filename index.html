@@ -115,6 +115,14 @@
       vertical-align: middle;
       margin-right: 10px;
     }
+
+    .en-vivo-btn {
+      background-color: red;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -229,14 +237,21 @@
 
       partidos.forEach(partido => {
         const div = document.createElement('li');
-        const goles = partido.score.fullTime.homeTeam !== null && partido.score.fullTime.awayTeam !== null ?
+        let goles = partido.score.fullTime.homeTeam !== null && partido.score.fullTime.awayTeam !== null ?
           `${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam}` : 'En juego';
+
+        // Si el partido está en vivo
+        if (partido.status === "LIVE") {
+          const minutos = Math.floor((new Date() - new Date(partido.utcDate)) / 60000); // Minutos transcurridos
+          goles = `${minutos} min - Goles: ${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam || 0}`;
+        }
 
         div.innerHTML = ` 
           <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
           Goles: ${goles}
+          ${partido.status === "LIVE" ? '<button class="en-vivo-btn">En Vivo</button>' : ''}
         `;
         enfrentamientosUl.appendChild(div);
       });
@@ -259,11 +274,6 @@
         // Limpiar el campo de comentario después de agregarlo
         comentarioInput.value = '';
       }
-    }
-  </script>
-</body>
-</html>
-
     }
   </script>
 </body>
