@@ -110,22 +110,18 @@
       box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     }
 
-    img.escudo {
-      width: 30px;
-      vertical-align: middle;
-      margin-right: 10px;
-    }
-
-    .en-vivo-btn {
+    .en-vivo {
       background-color: red;
       color: white;
-      padding: 5px 10px;
-      border-radius: 5px;
       font-weight: bold;
+      padding: 5px;
+      border-radius: 5px;
     }
 
-    .en-vivo-btn:hover {
-      background-color: #ff0000b0;
+    .escudo {
+      width: 30px;
+      height: 30px;
+      margin-right: 10px;
     }
   </style>
 </head>
@@ -146,14 +142,14 @@
     <section id="calendario">
       <h2>Calendario de partidos</h2>
       <div class="calendario" id="calendarioPartidos">
-        <!-- Los partidos se mostrarán en bloques aquí -->
+        <!-- Los partidos en vivo y los próximos se mostrarán aquí -->
       </div>
     </section>
 
     <section id="enfrentamientos">
       <h2>Enfrentamientos del día</h2>
       <ul id="partidos">
-        <!-- Los partidos en curso se agregarán aquí -->
+        <!-- Los partidos que se agreguen por JavaScript aparecerán aquí -->
       </ul>
     </section>
 
@@ -179,88 +175,62 @@
   </footer>
 
   <script>
-    const apiKey = '9d228391755844b2b40f411a09232e2d'; // Reemplaza esto con tu clave de API
+    const apiKey = '9d228391755844b2b40f411a09232e2d'; // Tu clave de API
 
     // Función para obtener los partidos de la API
     async function obtenerPartidos() {
       try {
-        const url = 'https://api.football-data.org/v4/matches?limit=20'; // Obtener más partidos
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Proxy para evitar CORS
+        const url = 'https://api.football-data.org/v4/matches';
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
         const response = await fetch(proxyUrl + url, {
           headers: {
             'X-Auth-Token': apiKey
           }
         });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.matches && data.matches.length > 0) {
-            mostrarCalendario(data.matches);
-            mostrarEnfrentamientos(data.matches);
-          } else {
-            console.log('No se encontraron más partidos');
-          }
-        } else {
-          console.error('Error al obtener los partidos: ', response.statusText);
-        }
+        const data = await response.json();
+        mostrarPartidos(data.matches);
       } catch (error) {
         console.error('Error al obtener los partidos:', error);
       }
     }
 
-    // Función para mostrar los partidos del calendario
-    function mostrarCalendario(partidos) {
+    // Función para mostrar los partidos (en vivo o próximos)
+    function mostrarPartidos(partidos) {
       const calendarioDiv = document.getElementById('calendarioPartidos');
-      calendarioDiv.innerHTML = ''; // Limpiar el calendario antes de agregar nuevos partidos
+      calendarioDiv.innerHTML = ''; // Limpiar antes de agregar nuevos partidos
 
       partidos.forEach(partido => {
-const escudoLocal = partido.homeTeam.crestUrl ? partido.homeTeam.crestUrl : 'https://upload.wikimedia.org/wikipedia/commons/4/47/Football_Icon.png'; 
-const escudoVisitante = partido.awayTeam.crestUrl ? partido.awayTeam.crestUrl : 'https://upload.wikimedia.org/wikipedia/commons/4/47/Football_Icon.png';
-
-        
         const div = document.createElement('div');
         div.classList.add('partido');
-        div.innerHTML = ` 
-          <strong>
-            <img class="escudo" src="${escudoLocal}" alt="${partido.homeTeam.name}"> 
-            ${partido.homeTeam.name} vs ${partido.awayTeam.name} 
-            <img class="escudo" src="${escudoVisitante}" alt="${partido.awayTeam.name}">
-          </strong><br>
+        
+        let partidoEnVivo = false;
+        let marcador = '';
+        let tiempoTranscurrido = '';
+        
+        // Verificamos si el partido está en vivo
+        if (partido.status === 'LIVE') {
+          partidoEnVivo = true;
+          marcador = `${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam}`;
+          const minutos = Math.floor((new Date() - new Date(partido.utcDate)) / 60000);
+          tiempoTranscurrido = `En vivo - ${minutos} minutos`;
+        }
+
+        div.innerHTML = `
+          <div style="display: flex; align-items: center;">
+            <img src="${partido.homeTeam.crestUrl}" class="escudo" alt="Escudo ${partido.homeTeam.name}">
+            <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong>
+            <img src="${partido.awayTeam.crestUrl}" class="escudo" alt="Escudo ${partido.awayTeam.name}">
+          </div>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
-          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}
+          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
+          ${partidoEnVivo ? `<span class="en-vivo">${tiempoTranscurrido}</span><br>Marcador: ${marcador}` : ''}
         `;
+
         calendarioDiv.appendChild(div);
       });
     }
 
-    // Función para mostrar los enfrentamientos del día
-    function mostrarEnfrentamientos(partidos) {
-      const enfrentamientosUl = document.getElementById('partidos');
-      enfrentamientosUl.innerHTML = ''; // Limpiar la lista de enfrentamientos
-
-      partidos.forEach(partido => {
-        const div = document.createElement('li');
-        let goles = partido.score.fullTime.homeTeam !== null && partido.score.fullTime.awayTeam !== null ?
-          `${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam}` : 'En juego';
-
-        // Si el partido está en vivo
-        if (partido.status === "LIVE") {
-          const minutos = Math.floor((new Date() - new Date(partido.utcDate)) / 60000); // Minutos transcurridos
-          goles = `${minutos} min - Goles: ${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam || 0}`;
-        }
-
-        div.innerHTML = ` 
-          <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
-          Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
-          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
-          Goles: ${goles}
-          ${partido.status === "LIVE" ? '<button class="en-vivo-btn">En Vivo</button>' : ''}
-        `;
-        enfrentamientosUl.appendChild(div);
-      });
-    }
-
-    // Llamar la función para obtener los partidos cuando la página cargue
+    // Llamamos a la función para obtener los partidos cuando la página cargue
     obtenerPartidos();
 
     // Función para agregar comentarios
@@ -274,11 +244,9 @@ const escudoVisitante = partido.awayTeam.crestUrl ? partido.awayTeam.crestUrl : 
         li.textContent = comentarioText;
         listaComentarios.appendChild(li);
 
-        // Limpiar el campo de comentario después de agregarlo
-        comentarioInput.value = '';
+        comentarioInput.value = ''; // Limpiar el campo de comentario
       }
     }
   </script>
 </body>
 </html>
-
