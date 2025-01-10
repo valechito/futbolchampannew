@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fútbol Champán</title>
   <style>
-    /* Estilos generales (mismo que antes) */
     body {
       font-family: 'Arial', sans-serif;
       background-color: #f0f8ff;
@@ -96,23 +95,6 @@
       background-color: #e24b3c;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    table th, table td {
-      padding: 10px;
-      text-align: center;
-      border: 1px solid #ddd;
-    }
-
-    table th {
-      background-color: #ff6f61;
-      color: white;
-    }
-
     .calendario {
       display: flex;
       justify-content: space-between;
@@ -126,6 +108,12 @@
       margin: 5px;
       flex: 1 0 30%;
       box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    img.escudo {
+      width: 30px;
+      vertical-align: middle;
+      margin-right: 10px;
     }
   </style>
 </head>
@@ -186,7 +174,7 @@
     async function obtenerPartidos() {
       try {
         // Usamos el proxy para evitar problemas de CORS
-        const url = 'https://api.football-data.org/v4/matches?limit=20'; // Obtiene más partidos
+        const url = 'https://api.football-data.org/v4/matches?limit=15'; // Obtiene más partidos
         const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Proxy que evita CORS
         const response = await fetch(proxyUrl + url, {
           headers: {
@@ -195,8 +183,12 @@
         });
         const data = await response.json();
         
-        // Llamar a la función para mostrar los partidos en el calendario
-        mostrarCalendario(data.matches);
+        // Asegurarse de que la respuesta contiene datos
+        if (data.matches) {
+          mostrarCalendario(data.matches);
+        } else {
+          console.error('No se encontraron partidos.');
+        }
       } catch (error) {
         console.error('Error al obtener los partidos:', error);
       }
@@ -208,14 +200,18 @@
       calendarioDiv.innerHTML = ''; // Limpiar el calendario antes de agregar nuevos partidos
 
       partidos.forEach(partido => {
-        // Obtener los escudos de los equipos
+        // Verifica si los escudos están disponibles
         const escudoLocal = partido.homeTeam.crestUrl ? partido.homeTeam.crestUrl : 'https://upload.wikimedia.org/wikipedia/commons/5/51/Default-wikipedia-logo.png';
         const escudoVisitante = partido.awayTeam.crestUrl ? partido.awayTeam.crestUrl : 'https://upload.wikimedia.org/wikipedia/commons/5/51/Default-wikipedia-logo.png';
         
         const div = document.createElement('div');
         div.classList.add('partido');
         div.innerHTML = ` 
-          <strong><img src="${escudoLocal}" alt="${partido.homeTeam.name}" style="width: 30px; vertical-align: middle;"> ${partido.homeTeam.name} vs ${partido.awayTeam.name} <img src="${escudoVisitante}" alt="${partido.awayTeam.name}" style="width: 30px; vertical-align: middle;"></strong><br>
+          <strong>
+            <img class="escudo" src="${escudoLocal}" alt="${partido.homeTeam.name}"> 
+            ${partido.homeTeam.name} vs ${partido.awayTeam.name} 
+            <img class="escudo" src="${escudoVisitante}" alt="${partido.awayTeam.name}">
+          </strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}
         `;
