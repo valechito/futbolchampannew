@@ -186,7 +186,7 @@
     async function obtenerPartidos() {
       try {
         // Usamos el proxy para evitar problemas de CORS
-        const url = 'https://api.football-data.org/v4/matches';
+        const url = 'https://api.football-data.org/v4/matches?limit=20'; // Obtiene más partidos
         const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Proxy que evita CORS
         const response = await fetch(proxyUrl + url, {
           headers: {
@@ -208,10 +208,14 @@
       calendarioDiv.innerHTML = ''; // Limpiar el calendario antes de agregar nuevos partidos
 
       partidos.forEach(partido => {
+        // Obtener los escudos de los equipos
+        const escudoLocal = partido.homeTeam.crestUrl ? partido.homeTeam.crestUrl : 'https://upload.wikimedia.org/wikipedia/commons/5/51/Default-wikipedia-logo.png';
+        const escudoVisitante = partido.awayTeam.crestUrl ? partido.awayTeam.crestUrl : 'https://upload.wikimedia.org/wikipedia/commons/5/51/Default-wikipedia-logo.png';
+        
         const div = document.createElement('div');
         div.classList.add('partido');
         div.innerHTML = ` 
-          <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
+          <strong><img src="${escudoLocal}" alt="${partido.homeTeam.name}" style="width: 30px; vertical-align: middle;"> ${partido.homeTeam.name} vs ${partido.awayTeam.name} <img src="${escudoVisitante}" alt="${partido.awayTeam.name}" style="width: 30px; vertical-align: middle;"></strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}
         `;
