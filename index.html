@@ -122,19 +122,26 @@
     <h1>Fútbol Champán</h1>
     <nav>
       <ul>
+        <li><a href="#calendario">Calendario de partidos</a></li>
         <li><a href="#enfrentamientos">Enfrentamientos del día</a></li>
         <li><a href="#noticias">Noticias</a></li>
         <li><a href="#debates">Caja de debates</a></li>
-        <li><a href="#calendario">Calendario de partidos</a></li>
       </ul>
     </nav>
   </header>
 
   <main>
+    <section id="calendario">
+      <h2>Calendario de partidos</h2>
+      <div class="calendario" id="calendarioPartidos">
+        <!-- Los partidos se mostrarán en bloques aquí -->
+      </div>
+    </section>
+
     <section id="enfrentamientos">
       <h2>Enfrentamientos del día</h2>
       <ul id="partidos">
-        <!-- Los partidos se agregarán aquí por JavaScript -->
+        <!-- Los partidos en curso se agregarán aquí -->
       </ul>
     </section>
 
@@ -151,13 +158,6 @@
         <ul id="listaComentarios">
           <!-- Los comentarios se agregarán aquí -->
         </ul>
-      </div>
-    </section>
-
-    <section id="calendario">
-      <h2>Calendario de partidos</h2>
-      <div class="calendario" id="calendarioPartidos">
-        <!-- Los partidos se mostrarán en bloques aquí -->
       </div>
     </section>
   </main>
@@ -181,12 +181,11 @@
           }
         });
 
-        // Verifica si la respuesta es exitosa
         if (response.ok) {
           const data = await response.json();
-          
           if (data.matches && data.matches.length > 0) {
             mostrarCalendario(data.matches);
+            mostrarEnfrentamientos(data.matches);
           } else {
             console.log('No se encontraron más partidos');
           }
@@ -204,9 +203,9 @@
       calendarioDiv.innerHTML = ''; // Limpiar el calendario antes de agregar nuevos partidos
 
       partidos.forEach(partido => {
-        // Verificar si los escudos están disponibles
-        const escudoLocal = partido.homeTeam.crestUrl || 'https://upload.wikimedia.org/wikipedia/commons/5/51/Default-wikipedia-logo.png';
-        const escudoVisitante = partido.awayTeam.crestUrl || 'https://upload.wikimedia.org/wikipedia/commons/5/51/Default-wikipedia-logo.png';
+        // Usar imagen genérica si no existe el escudo
+        const escudoLocal = partido.homeTeam.crestUrl || 'https://upload.wikimedia.org/wikipedia/commons/4/47/Football_Icon.png';
+        const escudoVisitante = partido.awayTeam.crestUrl || 'https://upload.wikimedia.org/wikipedia/commons/4/47/Football_Icon.png';
         
         const div = document.createElement('div');
         div.classList.add('partido');
@@ -220,6 +219,26 @@
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}
         `;
         calendarioDiv.appendChild(div);
+      });
+    }
+
+    // Función para mostrar los enfrentamientos del día
+    function mostrarEnfrentamientos(partidos) {
+      const enfrentamientosUl = document.getElementById('partidos');
+      enfrentamientosUl.innerHTML = ''; // Limpiar la lista de enfrentamientos
+
+      partidos.forEach(partido => {
+        const div = document.createElement('li');
+        const goles = partido.score.fullTime.homeTeam !== null && partido.score.fullTime.awayTeam !== null ?
+          `${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam}` : 'En juego';
+
+        div.innerHTML = ` 
+          <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
+          Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
+          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
+          Goles: ${goles}
+        `;
+        enfrentamientosUl.appendChild(div);
       });
     }
 
