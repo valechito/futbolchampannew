@@ -57,56 +57,11 @@
       color: #ff6f61;
     }
 
-    .comentarios {
-      background-color: #f8f8f8;
-      padding: 10px;
-      margin-top: 20px;
-    }
-
-    .comentarios ul {
-      list-style-type: none;
-      padding: 0;
-    }
-
-    .comentarios li {
-      background-color: #e0f7fa;
-      margin-bottom: 5px;
-      padding: 10px;
-      border-radius: 5px;
-    }
-
-    .comentarios input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-    }
-
-    .comentarios button {
-      padding: 10px;
-      background-color: #ff6f61;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-
-    .comentarios button:hover {
-      background-color: #e24b3c;
-    }
-
-    .calendario {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-
     .partido {
       background-color: #ffeb3b;
       border-radius: 5px;
       padding: 10px;
       margin: 5px;
-      flex: 1 0 30%;
       box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     }
 
@@ -116,6 +71,11 @@
       font-weight: bold;
       padding: 5px;
       border-radius: 5px;
+      margin-left: 10px;
+    }
+
+    .partido .info {
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -135,16 +95,16 @@
   <main>
     <section id="calendario">
       <h2>Calendario de partidos</h2>
-      <div class="calendario" id="calendarioPartidos">
-        <!-- Los partidos en vivo y los próximos se mostrarán aquí -->
+      <div id="calendarioPartidos">
+        <!-- Los partidos se mostrarán aquí -->
       </div>
     </section>
 
     <section id="enfrentamientos">
       <h2>Enfrentamientos del día</h2>
-      <ul id="partidos">
-        <!-- Los partidos que se agreguen por JavaScript aparecerán aquí -->
-      </ul>
+      <div id="partidosDia">
+        <!-- Los enfrentamientos del día se mostrarán aquí -->
+      </div>
     </section>
 
     <section id="noticias">
@@ -154,12 +114,10 @@
 
     <section id="debates">
       <h2>Caja de debates</h2>
-      <div class="comentarios">
+      <div>
         <input type="text" id="comentarioInput" placeholder="Deja tu comentario...">
         <button onclick="agregarComentario()">Agregar comentario</button>
-        <ul id="listaComentarios">
-          <!-- Los comentarios se agregarán aquí -->
-        </ul>
+        <ul id="listaComentarios"></ul>
       </div>
     </section>
   </main>
@@ -177,67 +135,74 @@
         const url = 'https://api.football-data.org/v4/matches';
         const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
         const response = await fetch(proxyUrl + url, {
-          headers: {
-            'X-Auth-Token': apiKey
-          }
+          headers: { 'X-Auth-Token': apiKey }
         });
         const data = await response.json();
-        mostrarPartidos(data.matches);
+
+        mostrarCalendario(data.matches);
+        mostrarEnfrentamientosDelDia(data.matches);
       } catch (error) {
         console.error('Error al obtener los partidos:', error);
       }
     }
 
-    // Función para mostrar los partidos (en vivo o próximos)
-    function mostrarPartidos(partidos) {
+    // Función para mostrar el calendario general
+    function mostrarCalendario(partidos) {
       const calendarioDiv = document.getElementById('calendarioPartidos');
-      calendarioDiv.innerHTML = ''; // Limpiar antes de agregar nuevos partidos
+      calendarioDiv.innerHTML = '';
 
       partidos.forEach(partido => {
         const div = document.createElement('div');
         div.classList.add('partido');
-        
-        let partidoEnVivo = false;
-        let marcador = '';
-        let tiempoTranscurrido = '';
-        
-        // Verificamos si el partido está en vivo
-        if (partido.status === 'LIVE') {
-          partidoEnVivo = true;
-          marcador = `${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam}`;
-          const minutos = Math.floor((new Date() - new Date(partido.utcDate)) / 60000);
-          tiempoTranscurrido = `En vivo - ${minutos} minutos`;
-        }
-
         div.innerHTML = `
           <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
-          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
-          ${partidoEnVivo ? `<span class="en-vivo">${tiempoTranscurrido}</span><br>Marcador: ${marcador}` : ''}
+          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}
         `;
-
         calendarioDiv.appendChild(div);
       });
     }
 
-    // Llamamos a la función para obtener los partidos cuando la página cargue
-    obtenerPartidos();
+    // Función para mostrar los enfrentamientos del día
+    function mostrarEnfrentamientosDelDia(partidos) {
+      const enfrentamientosDiv = document.getElementById('partidosDia');
+      enfrentamientosDiv.innerHTML = '';
+
+      const hoy = new Date().toISOString().split('T')[0]; // Fecha de hoy (formato YYYY-MM-DD)
+
+      const partidosHoy = partidos.filter(partido => partido.utcDate.startsWith(hoy));
+
+      partidosHoy.forEach(partido => {
+        const div = document.createElement('div');
+        div.classList.add('partido');
+        const partidoEnVivo = partido.status === 'LIVE';
+        div.innerHTML = `
+          <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
+          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
+          ${partidoEnVivo ? `
+            <span class="en-vivo">En Vivo</span><br>
+            Marcador: ${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam}
+          ` : ''}
+        `;
+        enfrentamientosDiv.appendChild(div);
+      });
+    }
 
     // Función para agregar comentarios
     function agregarComentario() {
       const comentarioInput = document.getElementById('comentarioInput');
       const comentarioText = comentarioInput.value.trim();
-
       if (comentarioText) {
         const listaComentarios = document.getElementById('listaComentarios');
         const li = document.createElement('li');
         li.textContent = comentarioText;
         listaComentarios.appendChild(li);
-
-        comentarioInput.value = ''; // Limpiar el campo de comentario
+        comentarioInput.value = '';
       }
     }
+
+    // Llamamos a la función para obtener los partidos cuando la página cargue
+    obtenerPartidos();
   </script>
 </body>
 </html>
-
