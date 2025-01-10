@@ -117,12 +117,6 @@
       padding: 5px;
       border-radius: 5px;
     }
-
-    .escudo {
-      width: 30px;
-      height: 30px;
-      margin-right: 10px;
-    }
   </style>
 </head>
 <body>
@@ -216,11 +210,7 @@
         }
 
         div.innerHTML = `
-          <div style="display: flex; align-items: center;">
-            <img src="${partido.homeTeam.crestUrl}" class="escudo" alt="Escudo ${partido.homeTeam.name}">
-            <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong>
-            <img src="${partido.awayTeam.crestUrl}" class="escudo" alt="Escudo ${partido.awayTeam.name}">
-          </div>
+          <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
           ${partidoEnVivo ? `<span class="en-vivo">${tiempoTranscurrido}</span><br>Marcador: ${marcador}` : ''}
@@ -250,3 +240,4 @@
   </script>
 </body>
 </html>
+
