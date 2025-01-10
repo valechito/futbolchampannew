@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fútbol Champán</title>
+  <style>
+    /* Estilos generales (mismo que antes) */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f8ff;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    header {
+      background-color: #ff6f61;
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2.5em;
+      margin: 0;
+    }
+
+    nav ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    nav ul li {
+      display: inline;
+      margin-right: 20px;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-size: 1.2em;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    section {
+      margin-bottom: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    section h2 {
+      color: #ff6f61;
+    }
+
+    .comentarios {
+      background-color: #f8f8f8;
+      padding: 10px;
+      margin-top: 20px;
+    }
+
+    .comentarios ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .comentarios li {
+      background-color: #e0f7fa;
+      margin-bottom: 5px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .comentarios input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+
+    .comentarios button {
+      padding: 10px;
+      background-color: #ff6f61;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .comentarios button:hover {
+      background-color: #e24b3c;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table th, table td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    table th {
+      background-color: #ff6f61;
+      color: white;
+    }
+
+    .calendario {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .partido {
+      background-color: #ffeb3b;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 5px;
+      flex: 1 0 30%;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Fútbol Champán</h1>
+    <nav>
+      <ul>
+        <li><a href="#enfrentamientos">Enfrentamientos del día</a></li>
+        <li><a href="#noticias">Noticias</a></li>
+        <li><a href="#debates">Caja de debates</a></li>
+        <li><a href="#calendario">Calendario de partidos</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <section id="enfrentamientos">
+      <h2>Enfrentamientos del día</h2>
+      <ul id="partidos">
+        <!-- Los partidos se agregarán aquí por JavaScript -->
+      </ul>
+    </section>
+
+    <section id="noticias">
+      <h2>Noticias de fútbol</h2>
+      <p>Las últimas noticias sobre el mundo del fútbol.</p>
+    </section>
+
+    <section id="debates">
+      <h2>Caja de debates</h2>
+      <div class="comentarios">
+        <input type="text" id="comentarioInput" placeholder="Deja tu comentario...">
+        <button onclick="agregarComentario()">Agregar comentario</button>
+        <ul id="listaComentarios">
+          <!-- Los comentarios se agregarán aquí -->
+        </ul>
+      </div>
+    </section>
+
+    <section id="calendario">
+      <h2>Calendario de partidos</h2>
+      <div class="calendario" id="calendarioPartidos">
+        <!-- Los partidos se mostrarán en bloques aquí -->
+      </div>
+    </section>
+  </main>
+  <footer>
+    <p>© 2025 Fútbol Champán. Todos los derechos reservados.</p>
+  </footer>
+
+  <!-- Aquí agregamos el código JavaScript -->
+  <script>
+    // Sustituir por tu propia clave API
+    const apiKey = '9d228391755844b2b40f411a09232e2d'; // Reemplaza esto con tu clave de API
+
+    // Función para obtener los partidos de la API
+    async function obtenerPartidos() {
+      try {
+        // Hacemos la solicitud a la API
+        const response = await fetch('https://api.football-data.org/v4/matches', {
+          headers: {
+            'X-Auth-Token': apiKey
+          }
+        });
+        const data = await response.json();
+        
+        // Llamar a la función para mostrar los partidos en el calendario
+        mostrarCalendario(data.matches);
+      } catch (error) {
+        console.error('Error al obtener los partidos:', error);
+      }
+    }
+
+    // Función para mostrar los partidos del calendario
+    function mostrarCalendario(partidos) {
+      const calendarioDiv = document.getElementById('calendarioPartidos');
+      calendarioDiv.innerHTML = ''; // Limpiar el calendario antes de agregar nuevos partidos
+
+      partidos.forEach(partido => {
+        const div = document.createElement('div');
+        div.classList.add('partido');
+        div.innerHTML = `
+          <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
+          Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
+          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}
+        `;
+        calendarioDiv.appendChild(div);
+      });
+    }
+
+    // Llamamos a la función para obtener los partidos cuando la página cargue
+    obtenerPartidos();
+
+    // Función para agregar comentarios
+    function agregarComentario() {
+      const comentarioInput = document.getElementById('comentarioInput');
+      const comentarioText = comentarioInput.value.trim();
+
+      if (comentarioText) {
+        const listaComentarios = document.getElementById('listaComentarios');
+        const li = document.createElement('li');
+        li.textContent = comentarioText;
+        listaComentarios.appendChild(li);
+
+        // Limpiar el campo de comentario después de agregarlo
+        comentarioInput.value = '';
+      }
+    }
+  </script>
+</body>
+</html>
