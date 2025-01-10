@@ -123,6 +123,10 @@
       border-radius: 5px;
       font-weight: bold;
     }
+
+    .en-vivo-btn:hover {
+      background-color: #ff0000b0;
+    }
   </style>
 </head>
 <body>
@@ -175,7 +179,6 @@
   </footer>
 
   <script>
-    // Sustituir por tu propia clave API
     const apiKey = '9d228391755844b2b40f411a09232e2d'; // Reemplaza esto con tu clave de API
 
     // Función para obtener los partidos de la API
@@ -211,7 +214,6 @@
       calendarioDiv.innerHTML = ''; // Limpiar el calendario antes de agregar nuevos partidos
 
       partidos.forEach(partido => {
-        // Usar imagen genérica si no existe el escudo
         const escudoLocal = partido.homeTeam.crestUrl || 'https://upload.wikimedia.org/wikipedia/commons/4/47/Football_Icon.png';
         const escudoVisitante = partido.awayTeam.crestUrl || 'https://upload.wikimedia.org/wikipedia/commons/4/47/Football_Icon.png';
         
@@ -278,3 +280,4 @@
   </script>
 </body>
 </html>
+
