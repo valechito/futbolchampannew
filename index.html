@@ -59,8 +59,8 @@
     }
 
     .partido {
-      background-color: #000; /* Fondo negro */
-      color: white; /* Texto blanco */
+      background-color: #000;   /* Fondo negro */
+      color: white;
       border-radius: 5px;
       padding: 10px;
       margin: 5px;
@@ -70,6 +70,7 @@
     }
 
     .partido:hover {
+      background-color: #333;    /* Fondo más claro al pasar el cursor */
       transform: scale(1.05);
       box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
     }
@@ -86,42 +87,40 @@
       color: #ff6f61;
     }
 
+    .estadisticas {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+    }
+
     .estadisticas span {
-      display: inline-block;
       width: 15px;
       height: 15px;
-      margin: 0 2px;
       border-radius: 50%;
+      display: inline-block;
     }
 
     .victoria {
       background-color: green;
     }
 
+    .empate {
+      background-color: white;
+      border: 1px solid #333;
+    }
+
     .derrota {
       background-color: red;
     }
 
-    .empate {
-      background-color: white;
-      border: 1px solid #ccc;
-    }
-
     .recordatorio {
-      margin-top: 10px;
-    }
-
-    .recordatorio button {
       background-color: #ff6f61;
       color: white;
       border: none;
       padding: 5px 10px;
+      margin-top: 10px;
       border-radius: 5px;
       cursor: pointer;
-    }
-
-    .recordatorio button:hover {
-      background-color: #e55d52;
     }
   </style>
 </head>
@@ -145,6 +144,13 @@
         <!-- Los partidos se mostrarán aquí -->
       </div>
     </section>
+
+    <section id="enfrentamientos">
+      <h2>Enfrentamientos del día</h2>
+      <div id="partidosDia">
+        <!-- Los enfrentamientos del día se mostrarán aquí -->
+      </div>
+    </section>
   </main>
 
   <footer>
@@ -152,35 +158,17 @@
   </footer>
 
   <script>
-    const apiKeyFootball = '9d228391755844b2b40f411a09232e2d';
-
     async function obtenerPartidos() {
+      const apiKeyFootball = '9d228391755844b2b40f411a09232e2d';
       try {
         const url = 'https://api.football-data.org/v4/matches';
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-        const response = await fetch(proxyUrl + url, {
-          headers: { 'X-Auth-Token': apiKeyFootball }
-        });
-        const data = await response.json();
-
-        mostrarCalendario(data.matches);
-      } catch (error) {
-        console.error('Error al obtener los partidos:', error);
-      }
-    }
-
-    async function obtenerEnfrentamientosAnteriores(equipoId) {
-      try {
-        const url = `https://api.football-data.org/v4/teams/${equipoId}/matches?status=FINISHED`;
         const response = await fetch(url, {
           headers: { 'X-Auth-Token': apiKeyFootball }
         });
         const data = await response.json();
-
-        return data.matches;
+        mostrarCalendario(data.matches);
       } catch (error) {
-        console.error('Error al obtener los enfrentamientos anteriores:', error);
-        return [];
+        console.error('Error al obtener los partidos:', error);
       }
     }
 
@@ -188,29 +176,24 @@
       const calendarioDiv = document.getElementById('calendarioPartidos');
       calendarioDiv.innerHTML = '';
 
-      partidos.forEach(async (partido) => {
+      partidos.forEach(partido => {
         const div = document.createElement('div');
         div.classList.add('partido');
+
         const tiempoRestante = calcularTiempoRestante(partido.utcDate);
-
-        const enfrentamientosLocal = await obtenerEnfrentamientosAnteriores(partido.homeTeam.id);
-        const enfrentamientosVisitante = await obtenerEnfrentamientosAnteriores(partido.awayTeam.id);
-
         div.innerHTML = `
           <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
           <div class="contador">${tiempoRestante}</div>
           <div class="estadisticas">
-            Últimos encuentros de ${partido.homeTeam.name}: 
-            ${mostrarResultados(enfrentamientosLocal)}<br>
-            Últimos encuentros de ${partido.awayTeam.name}: 
-            ${mostrarResultados(enfrentamientosVisitante)}
+            <span class="victoria"></span>
+            <span class="empate"></span>
+            <span class="derrota"></span>
           </div>
-          <div class="recordatorio">
-            <button onclick="setRecordatorio('${partido.utcDate}', '${partido.homeTeam.name} vs ${partido.awayTeam.name}')">Recordarme</button>
-          </div>
+          <button class="recordatorio" onclick="recordarPartido('${partido.homeTeam.name} vs ${partido.awayTeam.name}', '${partido.utcDate}')">Recordarme</button>
         `;
+
         calendarioDiv.appendChild(div);
       });
     }
@@ -226,28 +209,8 @@
       return '¡El partido ha comenzado!';
     }
 
-    function mostrarResultados(enfrentamientos) {
-      return enfrentamientos.slice(0, 3).map(partido => {
-        if (partido.score.winner === 'HOME_TEAM') {
-          return '<span class="victoria"></span>';
-        } else if (partido.score.winner === 'AWAY_TEAM') {
-          return '<span class="derrota"></span>';
-        } else {
-          return '<span class="empate"></span>';
-        }
-      }).join('');
-    }
-
-    function setRecordatorio(fechaPartido, partido) {
-      const tiempoRestante = new Date(fechaPartido) - new Date();
-      if (tiempoRestante > 0) {
-        setTimeout(() => {
-          alert(`¡Es hora del partido: ${partido}!`);
-        }, tiempoRestante);
-        alert('Recordatorio configurado con éxito.');
-      } else {
-        alert('El partido ya ha comenzado o finalizado.');
-      }
+    function recordarPartido(equipos, fecha) {
+      alert(`Recordatorio activado para el partido: ${equipos} el ${new Date(fecha).toLocaleString()}`);
     }
 
     obtenerPartidos();
