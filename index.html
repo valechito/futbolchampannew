@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #f0f8ff;
+      background: linear-gradient(45deg, #ffdfba, #ff6f61, #ffdfba);
       margin: 0;
       padding: 0;
       color: #333;
@@ -59,8 +59,8 @@
     }
 
     .partido {
-      background-color: #3a4d71;   /* Color de fondo de los partidos */
-      color: white;                 /* Texto blanco */
+      background-color: #3a4d71;
+      color: white;
       border-radius: 5px;
       padding: 10px;
       margin: 5px;
@@ -70,7 +70,7 @@
     }
 
     .partido:hover {
-      background-color: #4e6b99;    /* Fondo más claro al pasar el cursor */
+      background-color: #4e6b99;
       transform: scale(1.05);
       box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
     }
@@ -90,63 +90,10 @@
       margin-left: 10px;
     }
 
-    .partido-dia {
-      background-color: #add8e6;
-      border-radius: 5px;
-      padding: 10px;
-      margin: 5px;
-      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .noticia {
-      border-bottom: 1px solid #ccc;
-      padding: 10px 0;
-    }
-
-    .noticia:last-child {
-      border-bottom: none;
-    }
-
-    .noticia a {
-      color: #ff6f61;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .favorito {
-      color: gold;
-      cursor: pointer;
-      font-size: 1.5em;
-    }
-
-    .contador {
-      margin-top: 10px;
-      font-weight: bold;
-      color: #555;
-    }
-
     .estadisticas {
       font-size: 0.9em;
-      color: #777;
+      color: #ddd;
       margin-top: 5px;
-    }
-
-    .encuesta {
-      margin-top: 10px;
-    }
-
-    .encuesta button {
-      background-color: #ff6f61;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      margin: 5px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .encuesta button:hover {
-      background-color: #e55d52;
     }
   </style>
 </head>
@@ -200,8 +147,7 @@
   </footer>
 
   <script>
-    const apiKeyFootball = '9d228391755844b2b40f411a09232e2d'; // Tu clave de API para Football-Data
-    const apiKeyNews = '38f3a44b11fb4bfead0972b01f172a75'; // Tu clave de API para NewsAPI
+    const apiKeyFootball = '9d228391755844b2b40f411a09232e2d';
 
     async function obtenerPartidos() {
       try {
@@ -221,12 +167,11 @@
 
     async function obtenerEnfrentamientosAnteriores(equipoId) {
       try {
-        const url = `https://api.football-data.org/v4/teams/${equipoId}/matches?status=FINISHED`;
+        const url = `https://api.football-data.org/v4/teams/${equipoId}/matches?status=FINISHED&limit=5`;
         const response = await fetch(url, {
           headers: { 'X-Auth-Token': apiKeyFootball }
         });
         const data = await response.json();
-
         return data.matches;
       } catch (error) {
         console.error('Error al obtener los enfrentamientos anteriores:', error);
@@ -241,9 +186,7 @@
       partidos.forEach(async (partido) => {
         const div = document.createElement('div');
         div.classList.add('partido');
-        const tiempoRestante = calcularTiempoRestante(partido.utcDate);
 
-        // Obtener enfrentamientos anteriores de los equipos
         const enfrentamientosLocal = await obtenerEnfrentamientosAnteriores(partido.homeTeam.id);
         const enfrentamientosVisitante = await obtenerEnfrentamientosAnteriores(partido.awayTeam.id);
 
@@ -251,43 +194,14 @@
           <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
-          <div class="contador">${tiempoRestante}</div>
           <div class="estadisticas">
-            Últimos encuentros de ${partido.homeTeam.name}: ${enfrentamientosLocal.slice(0, 3).map(p => `${p.homeTeam.name} vs ${p.awayTeam.name}`).join(' | ')}<br>
-            Últimos encuentros de ${partido.awayTeam.name}: ${enfrentamientosVisitante.slice(0, 3).map(p => `${p.homeTeam.name} vs ${p.awayTeam.name}`).join(' | ')}
-          </div>
-          <span class="favorito" onclick="marcarFavorito(this)">⭐</span>
-          <div class="encuesta">
-            <button onclick="votar('${partido.homeTeam.name}')">${partido.homeTeam.name}</button>
-            <button onclick="votar('${partido.awayTeam.name}')">${partido.awayTeam.name}</button>
+            Últimos 3 partidos de ${partido.homeTeam.name}: ${enfrentamientosLocal.slice(0, 3).map(p => `${p.homeTeam.name} ${p.score.fullTime.homeTeam}-${p.score.fullTime.awayTeam} ${p.awayTeam.name}`).join('<br>')}<br>
+            Últimos 3 partidos de ${partido.awayTeam.name}: ${enfrentamientosVisitante.slice(0, 3).map(p => `${p.homeTeam.name} ${p.score.fullTime.homeTeam}-${p.score.fullTime.awayTeam} ${p.awayTeam.name}`).join('<br>')}
           </div>
         `;
+
         calendarioDiv.appendChild(div);
       });
-    }
-
-    function calcularTiempoRestante(fechaPartido) {
-      const ahora = new Date();
-      const diferencia = new Date(fechaPartido) - ahora;
-      if (diferencia > 0) {
-        const horas = Math.floor(diferencia / (1000 * 60 * 60));
-        const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
-        return `${horas}h ${minutos}m restantes`;
-      }
-      return '¡El partido ha comenzado!';
-    }
-
-    function marcarFavorito(elemento) {
-      elemento.classList.toggle('marcado');
-      if (elemento.classList.contains('marcado')) {
-        elemento.style.color = 'gold';
-      } else {
-        elemento.style.color = 'black';
-      }
-    }
-
-    function votar(equipo) {
-      alert(`¡Gracias por tu voto para ${equipo}!`);
     }
 
     function mostrarEnfrentamientosDelDia(partidos) {
@@ -308,47 +222,7 @@
       });
     }
 
-    async function obtenerNoticias() {
-      try {
-        const url = `https://newsapi.org/v2/everything?q=fútbol&language=es&apiKey=${apiKeyNews}`;
-        const response = await fetch(url);
-        const data = await response.json();
-
-        mostrarNoticias(data.articles);
-      } catch (error) {
-        console.error('Error al obtener las noticias:', error);
-      }
-    }
-
-    function mostrarNoticias(noticias) {
-      const contenedorNoticias = document.getElementById('contenedorNoticias');
-      contenedorNoticias.innerHTML = '';
-
-      noticias.forEach(noticia => {
-        const div = document.createElement('div');
-        div.classList.add('noticia');
-        div.innerHTML = `
-          <a href="${noticia.url}" target="_blank">${noticia.title}</a><br>
-          <p>${noticia.description || ''}</p>
-        `;
-        contenedorNoticias.appendChild(div);
-      });
-    }
-
-    function agregarComentario() {
-      const comentarioInput = document.getElementById('comentarioInput');
-      const comentarioText = comentarioInput.value.trim();
-      if (comentarioText) {
-        const listaComentarios = document.getElementById('listaComentarios');
-        const li = document.createElement('li');
-        li.textContent = comentarioText;
-        listaComentarios.appendChild(li);
-        comentarioInput.value = '';
-      }
-    }
-
     obtenerPartidos();
-    obtenerNoticias();
   </script>
 </body>
 </html>
