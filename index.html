@@ -65,6 +65,12 @@
       margin: 5px;
       box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
       text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .partido:hover {
+      transform: scale(1.05);
+      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
     }
 
     .partidos-grid {
@@ -103,6 +109,42 @@
       color: #ff6f61;
       text-decoration: none;
       font-weight: bold;
+    }
+
+    .favorito {
+      color: gold;
+      cursor: pointer;
+      font-size: 1.5em;
+    }
+
+    .contador {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .estadisticas {
+      font-size: 0.9em;
+      color: #777;
+      margin-top: 5px;
+    }
+
+    .encuesta {
+      margin-top: 10px;
+    }
+
+    .encuesta button {
+      background-color: #ff6f61;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      margin: 5px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .encuesta button:hover {
+      background-color: #e55d52;
     }
   </style>
 </head>
@@ -182,13 +224,46 @@
       partidos.forEach(partido => {
         const div = document.createElement('div');
         div.classList.add('partido');
+        const tiempoRestante = calcularTiempoRestante(partido.utcDate);
+
         div.innerHTML = `
           <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
-          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}
+          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
+          <div class="contador">${tiempoRestante}</div>
+          <div class="estadisticas">Últimos encuentros: 🟢⚪🔴🟢⚪</div>
+          <span class="favorito" onclick="marcarFavorito(this)">⭐</span>
+          <div class="encuesta">
+            <button onclick="votar('${partido.homeTeam.name}')">${partido.homeTeam.name}</button>
+            <button onclick="votar('${partido.awayTeam.name}')">${partido.awayTeam.name}</button>
+          </div>
         `;
         calendarioDiv.appendChild(div);
       });
+    }
+
+    function calcularTiempoRestante(fechaPartido) {
+      const ahora = new Date();
+      const diferencia = new Date(fechaPartido) - ahora;
+      if (diferencia > 0) {
+        const horas = Math.floor(diferencia / (1000 * 60 * 60));
+        const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+        return `${horas}h ${minutos}m restantes`;
+      }
+      return '¡El partido ha comenzado!';
+    }
+
+    function marcarFavorito(elemento) {
+      elemento.classList.toggle('marcado');
+      if (elemento.classList.contains('marcado')) {
+        elemento.style.color = 'gold';
+      } else {
+        elemento.style.color = 'black';
+      }
+    }
+
+    function votar(equipo) {
+      alert(`¡Gracias por tu voto para ${equipo}!`);
     }
 
     function mostrarEnfrentamientosDelDia(partidos) {
