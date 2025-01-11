@@ -100,14 +100,6 @@
       margin-left: 10px;
     }
 
-    .partido-dia {
-      background-color: #add8e6;
-      border-radius: 5px;
-      padding: 10px;
-      margin: 5px;
-      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    }
-
     .noticia {
       border-bottom: 1px solid #ccc;
       padding: 10px 0;
@@ -165,35 +157,6 @@
       border-radius: 8px;
     }
 
-    #calendarioPartidos .partido {
-      background-color: #2c2c2c;
-      color: white;
-    }
-
-    .resultado {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-right: 5px;
-    }
-
-    .ganado {
-      background-color: green;
-    }
-
-    .perdido {
-      background-color: red;
-    }
-
-    .empatado {
-      background-color: white;
-    }
-
-    .clasificacion {
-      margin-top: 20px;
-    }
-
     .modo-oscuro-toggle {
       position: fixed;
       bottom: 20px;
@@ -219,7 +182,6 @@
       <ul>
         <li><a href="#calendario">Calendario de partidos</a></li>
         <li><a href="#enfrentamientos">Enfrentamientos del día</a></li>
-        <li><a href="#clasificacion">Clasificación en tiempo real</a></li>
         <li><a href="#noticias">Noticias</a></li>
         <li><a href="#debates">Caja de debates</a></li>
       </ul>
@@ -238,13 +200,6 @@
       <h2>Enfrentamientos del día</h2>
       <div id="partidosDia">
         <!-- Los enfrentamientos del día se mostrarán aquí -->
-      </div>
-    </section>
-
-    <section id="clasificacion">
-      <h2>Clasificación en tiempo real</h2>
-      <div id="tablaClasificacion">
-        <!-- La tabla de clasificación se llenará aquí -->
       </div>
     </section>
 
@@ -273,6 +228,15 @@
 
   <script>
     const apiKeyFootball = '9d228391755844b2b40f411a09232e2d';
+    const coloresEquipos = {
+      "Real Madrid": "white",
+      "Barcelona": "blue",
+      "Atlético Madrid": "red",
+      "Manchester United": "red",
+      "Chelsea": "blue",
+      "Liverpool": "red",
+      // Añade más equipos según sea necesario
+    };
 
     async function obtenerPartidos() {
       try {
@@ -290,17 +254,18 @@
       }
     }
 
-    async function obtenerClasificacion() {
+    async function obtenerPosicionesEquipo(equipoId) {
       try {
-        const url = 'https://api.football-data.org/v4/competitions/PL/standings';
+        const url = `https://api.football-data.org/v4/teams/${equipoId}`;
         const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
         const response = await fetch(proxyUrl + url, {
           headers: { 'X-Auth-Token': apiKeyFootball }
         });
         const data = await response.json();
-        mostrarClasificacion(data.standings[0].table);
+        return data.position || "-";
       } catch (error) {
-        console.error('Error al obtener la clasificación:', error);
+        console.error('Error al obtener la posición del equipo:', error);
+        return "-";
       }
     }
 
@@ -312,56 +277,39 @@
         const div = document.createElement('div');
         div.classList.add('partido');
 
-        const tiempoRestante = calcularTiempoRestante(partido.utcDate);
+        const colorLocal = coloresEquipos[partido.homeTeam.name] || 'gray';
+        const colorVisitante = coloresEquipos[partido.awayTeam.name] || 'gray';
 
         div.innerHTML = `
-          <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
+          <strong style="color: ${colorLocal}">${partido.homeTeam.name}</strong> vs <strong style="color: ${colorVisitante}">${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
           <button onclick="recordarPartido('${partido.homeTeam.name}', '${partido.awayTeam.name}', '${partido.utcDate}')">Recordar</button>
-          <div class="contador">${tiempoRestante}</div>
         `;
 
         calendarioDiv.appendChild(div);
       });
     }
 
-    function mostrarClasificacion(tabla) {
-      const clasificacionDiv = document.getElementById('tablaClasificacion');
-      clasificacionDiv.innerHTML = '';
+    function mostrarEnfrentamientosDelDia(partidos) {
+      const enfrentamientosDiv = document.getElementById('partidosDia');
+      enfrentamientosDiv.innerHTML = '';
 
-      const tablaHTML = document.createElement('table');
-      tablaHTML.innerHTML = `
-        <thead>
-          <tr>
-            <th>Posición</th>
-            <th>Equipo</th>
-            <th>Puntos</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tabla.map(equipo => `
-            <tr>
-              <td>${equipo.position}</td>
-              <td>${equipo.team.name}</td>
-              <td>${equipo.points}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      `;
+      partidos.forEach(async (partido) => {
+        const posicionLocal = await obtenerPosicionesEquipo(partido.homeTeam.id);
+        const posicionVisitante = await obtenerPosicionesEquipo(partido.awayTeam.id);
 
-      clasificacionDiv.appendChild(tablaHTML);
-    }
+        const div = document.createElement('div');
+        div.classList.add('partido-dia');
+        div.innerHTML = `
+          <strong>${partido.homeTeam.name} (Pos: ${posicionLocal})</strong> vs 
+          <strong>${partido.awayTeam.name} (Pos: ${posicionVisitante})</strong><br>
+          Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
+          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
+        `;
 
-    function calcularTiempoRestante(fechaPartido) {
-      const ahora = new Date();
-      const diferencia = new Date(fechaPartido) - ahora;
-      if (diferencia > 0) {
-        const horas = Math.floor(diferencia / (1000 * 60 * 60));
-        const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
-        return `${horas}h ${minutos}m restantes`;
-      }
-      return '¡El partido ha comenzado!';
+        enfrentamientosDiv.appendChild(div);
+      });
     }
 
     function recordarPartido(local, visitante, fecha) {
@@ -374,7 +322,6 @@
     }
 
     obtenerPartidos();
-    obtenerClasificacion();
   </script>
 </body>
 </html>
