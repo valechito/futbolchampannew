@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #eaf4fc; /* Fondo armónico azul claro */
+      background-color: #f0f8ff;
       margin: 0;
       padding: 0;
       color: #333;
@@ -59,12 +59,18 @@
     }
 
     .partido {
-      background-color: #f5f5f5; /* Fondo gris claro */
+      background-color: #ffeb3b;
       border-radius: 5px;
       padding: 10px;
       margin: 5px;
       box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
       text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .partido:hover {
+      transform: scale(1.05);
+      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
     }
 
     .partidos-grid {
@@ -83,7 +89,7 @@
     }
 
     .partido-dia {
-      background-color: #add8e6; /* Fondo azul claro */
+      background-color: #add8e6;
       border-radius: 5px;
       padding: 10px;
       margin: 5px;
@@ -104,6 +110,42 @@
       text-decoration: none;
       font-weight: bold;
     }
+
+    .favorito {
+      color: gold;
+      cursor: pointer;
+      font-size: 1.5em;
+    }
+
+    .contador {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .estadisticas {
+      font-size: 0.9em;
+      color: #777;
+      margin-top: 5px;
+    }
+
+    .encuesta {
+      margin-top: 10px;
+    }
+
+    .encuesta button {
+      background-color: #ff6f61;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      margin: 5px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .encuesta button:hover {
+      background-color: #e55d52;
+    }
   </style>
 </head>
 <body>
@@ -114,7 +156,6 @@
         <li><a href="#calendario">Calendario de partidos</a></li>
         <li><a href="#enfrentamientos">Enfrentamientos del día</a></li>
         <li><a href="#noticias">Noticias</a></li>
-        <li><a href="#ultimos-enfrentamientos">Últimos enfrentamientos</a></li>
         <li><a href="#debates">Caja de debates</a></li>
       </ul>
     </nav>
@@ -142,13 +183,6 @@
       </div>
     </section>
 
-    <section id="ultimos-enfrentamientos">
-      <h2>Últimos enfrentamientos</h2>
-      <div id="ultimosPartidos">
-        <!-- Los últimos enfrentamientos se mostrarán aquí -->
-      </div>
-    </section>
-
     <section id="debates">
       <h2>Caja de debates</h2>
       <div>
@@ -164,20 +198,20 @@
   </footer>
 
   <script>
-    const apiKeyFootball = '9d228391755844b2b40f411a09232e2d'; // Clave de Football-Data
-    const apiKeyNews = '38f3a44b11fb4bfead0972b01f172a75'; // Clave de NewsAPI
+    const apiKeyFootball = '9d228391755844b2b40f411a09232e2d'; // Tu clave de API para Football-Data
+    const apiKeyNews = '38f3a44b11fb4bfead0972b01f172a75'; // Tu clave de API para NewsAPI
 
     async function obtenerPartidos() {
       try {
         const url = 'https://api.football-data.org/v4/matches';
-        const response = await fetch(url, {
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        const response = await fetch(proxyUrl + url, {
           headers: { 'X-Auth-Token': apiKeyFootball }
         });
         const data = await response.json();
 
         mostrarCalendario(data.matches);
         mostrarEnfrentamientosDelDia(data.matches);
-        mostrarUltimosPartidos(data.matches);
       } catch (error) {
         console.error('Error al obtener los partidos:', error);
       }
@@ -190,13 +224,46 @@
       partidos.forEach(partido => {
         const div = document.createElement('div');
         div.classList.add('partido');
+        const tiempoRestante = calcularTiempoRestante(partido.utcDate);
+
         div.innerHTML = `
           <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
-          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}
+          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
+          <div class="contador">${tiempoRestante}</div>
+          <div class="estadisticas">Últimos encuentros: 🟢⚪🔴🟢⚪</div>
+          <span class="favorito" onclick="marcarFavorito(this)">⭐</span>
+          <div class="encuesta">
+            <button onclick="votar('${partido.homeTeam.name}')">${partido.homeTeam.name}</button>
+            <button onclick="votar('${partido.awayTeam.name}')">${partido.awayTeam.name}</button>
+          </div>
         `;
         calendarioDiv.appendChild(div);
       });
+    }
+
+    function calcularTiempoRestante(fechaPartido) {
+      const ahora = new Date();
+      const diferencia = new Date(fechaPartido) - ahora;
+      if (diferencia > 0) {
+        const horas = Math.floor(diferencia / (1000 * 60 * 60));
+        const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+        return `${horas}h ${minutos}m restantes`;
+      }
+      return '¡El partido ha comenzado!';
+    }
+
+    function marcarFavorito(elemento) {
+      elemento.classList.toggle('marcado');
+      if (elemento.classList.contains('marcado')) {
+        elemento.style.color = 'gold';
+      } else {
+        elemento.style.color = 'black';
+      }
+    }
+
+    function votar(equipo) {
+      alert(`¡Gracias por tu voto para ${equipo}!`);
     }
 
     function mostrarEnfrentamientosDelDia(partidos) {
@@ -214,22 +281,6 @@
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}
         `;
         enfrentamientosDiv.appendChild(div);
-      });
-    }
-
-    function mostrarUltimosPartidos(partidos) {
-      const ultimosDiv = document.getElementById('ultimosPartidos');
-      ultimosDiv.innerHTML = '';
-
-      const partidosFinalizados = partidos.filter(partido => partido.status === 'FINISHED');
-      partidosFinalizados.slice(-10).forEach(partido => {
-        const div = document.createElement('div');
-        div.classList.add('partido');
-        div.innerHTML = `
-          <strong>${partido.homeTeam.name} ${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam} ${partido.awayTeam.name}</strong><br>
-          Fecha: ${new Date(partido.utcDate).toLocaleDateString()}
-        `;
-        ultimosDiv.appendChild(div);
       });
     }
 
