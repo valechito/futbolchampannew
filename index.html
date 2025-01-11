@@ -13,6 +13,11 @@
       color: #333;
     }
 
+    body.modo-oscuro {
+      background-color: #121212;
+      color: #f0f0f0;
+    }
+
     header {
       background-color: #ff6f61;
       color: white;
@@ -52,6 +57,11 @@
       border-radius: 8px;
       box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
       padding: 20px;
+    }
+
+    section.modo-oscuro {
+      background-color: #1e1e1e;
+      color: #f0f0f0;
     }
 
     section h2 {
@@ -179,6 +189,27 @@
     .empatado {
       background-color: white;
     }
+
+    .clasificacion {
+      margin-top: 20px;
+    }
+
+    .modo-oscuro-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #ff6f61;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      padding: 10px;
+      cursor: pointer;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .modo-oscuro-toggle:hover {
+      background-color: #e55d52;
+    }
   </style>
 </head>
 <body>
@@ -188,6 +219,7 @@
       <ul>
         <li><a href="#calendario">Calendario de partidos</a></li>
         <li><a href="#enfrentamientos">Enfrentamientos del día</a></li>
+        <li><a href="#clasificacion">Clasificación en tiempo real</a></li>
         <li><a href="#noticias">Noticias</a></li>
         <li><a href="#debates">Caja de debates</a></li>
       </ul>
@@ -206,6 +238,13 @@
       <h2>Enfrentamientos del día</h2>
       <div id="partidosDia">
         <!-- Los enfrentamientos del día se mostrarán aquí -->
+      </div>
+    </section>
+
+    <section id="clasificacion">
+      <h2>Clasificación en tiempo real</h2>
+      <div id="tablaClasificacion">
+        <!-- La tabla de clasificación se llenará aquí -->
       </div>
     </section>
 
@@ -230,9 +269,10 @@
     <p>© 2025 Fútbol Champán. Todos los derechos reservados.</p>
   </footer>
 
+  <button class="modo-oscuro-toggle" onclick="alternarModoOscuro()">🌓</button>
+
   <script>
     const apiKeyFootball = '9d228391755844b2b40f411a09232e2d';
-    const apiKeyNews = '38f3a44b11fb4bfead0972b01f172a75';
 
     async function obtenerPartidos() {
       try {
@@ -245,9 +285,22 @@
 
         mostrarCalendario(data.matches);
         mostrarEnfrentamientosDelDia(data.matches);
-        mostrarPartidoFavorito(data.matches);
       } catch (error) {
         console.error('Error al obtener los partidos:', error);
+      }
+    }
+
+    async function obtenerClasificacion() {
+      try {
+        const url = 'https://api.football-data.org/v4/competitions/PL/standings';
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        const response = await fetch(proxyUrl + url, {
+          headers: { 'X-Auth-Token': apiKeyFootball }
+        });
+        const data = await response.json();
+        mostrarClasificacion(data.standings[0].table);
+      } catch (error) {
+        console.error('Error al obtener la clasificación:', error);
       }
     }
 
@@ -265,11 +318,39 @@
           <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
+          <button onclick="recordarPartido('${partido.homeTeam.name}', '${partido.awayTeam.name}', '${partido.utcDate}')">Recordar</button>
           <div class="contador">${tiempoRestante}</div>
         `;
 
         calendarioDiv.appendChild(div);
       });
+    }
+
+    function mostrarClasificacion(tabla) {
+      const clasificacionDiv = document.getElementById('tablaClasificacion');
+      clasificacionDiv.innerHTML = '';
+
+      const tablaHTML = document.createElement('table');
+      tablaHTML.innerHTML = `
+        <thead>
+          <tr>
+            <th>Posición</th>
+            <th>Equipo</th>
+            <th>Puntos</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tabla.map(equipo => `
+            <tr>
+              <td>${equipo.position}</td>
+              <td>${equipo.team.name}</td>
+              <td>${equipo.points}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      `;
+
+      clasificacionDiv.appendChild(tablaHTML);
     }
 
     function calcularTiempoRestante(fechaPartido) {
@@ -283,69 +364,17 @@
       return '¡El partido ha comenzado!';
     }
 
-    function mostrarEnfrentamientosDelDia(partidos) {
-      const enfrentamientosDiv = document.getElementById('partidosDia');
-      enfrentamientosDiv.innerHTML = '';
-
-      const hoy = new Date().toISOString().split('T')[0];
-      const partidosHoy = partidos.filter(partido => partido.utcDate.startsWith(hoy));
-
-      partidosHoy.forEach(partido => {
-        const div = document.createElement('div');
-        div.classList.add('partido-dia');
-        div.innerHTML = `
-          <span class="resultado ${getResultadoClass(partido.score.winner)}"></span>
-          <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
-          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
-          <span class="en-vivo">${partido.status === 'LIVE' ? 'En vivo' : ''}</span>
-        `;
-        enfrentamientosDiv.appendChild(div);
-      });
+    function recordarPartido(local, visitante, fecha) {
+      alert(`¡Recordatorio creado para el partido ${local} vs ${visitante} el ${new Date(fecha).toLocaleString()}!`);
     }
 
-    function getResultadoClass(winner) {
-      if (winner === 'HOME_TEAM') return 'ganado';
-      if (winner === 'AWAY_TEAM') return 'perdido';
-      if (winner === 'DRAW') return 'empatado';
-      return '';
-    }
-
-    function mostrarPartidoFavorito(partidos) {
-      const favoritos = ["Real Madrid", "Barcelona", "Liverpool"];
-      const partidosFavoritos = partidos.filter(partido => 
-        favoritos.includes(partido.homeTeam.name) || favoritos.includes(partido.awayTeam.name)
-      );
-
-      const calendarioDiv = document.getElementById('calendarioPartidos');
-
-      partidosFavoritos.forEach(partido => {
-        const div = document.createElement('div');
-        div.classList.add('partido');
-
-        div.innerHTML = `
-          <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
-          Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
-          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
-          <div class="contador">¡Partido destacado!</div>
-        `;
-
-        calendarioDiv.appendChild(div);
-      });
-    }
-
-    function agregarComentario() {
-      const comentarioInput = document.getElementById('comentarioInput');
-      const comentarioText = comentarioInput.value.trim();
-      if (comentarioText) {
-        const listaComentarios = document.getElementById('listaComentarios');
-        const li = document.createElement('li');
-        li.textContent = comentarioText;
-        listaComentarios.appendChild(li);
-        comentarioInput.value = '';
-      }
+    function alternarModoOscuro() {
+      document.body.classList.toggle('modo-oscuro');
+      document.querySelectorAll('section').forEach(section => section.classList.toggle('modo-oscuro'));
     }
 
     obtenerPartidos();
+    obtenerClasificacion();
   </script>
 </body>
 </html>
