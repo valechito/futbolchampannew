@@ -59,7 +59,8 @@
     }
 
     .partido {
-      background-color: #ffeb3b;
+      background-color: #3a4d71;   /* Color de fondo de los partidos */
+      color: white;                 /* Texto blanco */
       border-radius: 5px;
       padding: 10px;
       margin: 5px;
@@ -69,6 +70,7 @@
     }
 
     .partido:hover {
+      background-color: #4e6b99;    /* Fondo más claro al pasar el cursor */
       transform: scale(1.05);
       box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
     }
@@ -217,21 +219,43 @@
       }
     }
 
+    async function obtenerEnfrentamientosAnteriores(equipoId) {
+      try {
+        const url = `https://api.football-data.org/v4/teams/${equipoId}/matches?status=FINISHED`;
+        const response = await fetch(url, {
+          headers: { 'X-Auth-Token': apiKeyFootball }
+        });
+        const data = await response.json();
+
+        return data.matches;
+      } catch (error) {
+        console.error('Error al obtener los enfrentamientos anteriores:', error);
+        return [];
+      }
+    }
+
     function mostrarCalendario(partidos) {
       const calendarioDiv = document.getElementById('calendarioPartidos');
       calendarioDiv.innerHTML = '';
 
-      partidos.forEach(partido => {
+      partidos.forEach(async (partido) => {
         const div = document.createElement('div');
         div.classList.add('partido');
         const tiempoRestante = calcularTiempoRestante(partido.utcDate);
+
+        // Obtener enfrentamientos anteriores de los equipos
+        const enfrentamientosLocal = await obtenerEnfrentamientosAnteriores(partido.homeTeam.id);
+        const enfrentamientosVisitante = await obtenerEnfrentamientosAnteriores(partido.awayTeam.id);
 
         div.innerHTML = `
           <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
           <div class="contador">${tiempoRestante}</div>
-          <div class="estadisticas">Últimos encuentros: 🟢⚪🔴🟢⚪</div>
+          <div class="estadisticas">
+            Últimos encuentros de ${partido.homeTeam.name}: ${enfrentamientosLocal.slice(0, 3).map(p => `${p.homeTeam.name} vs ${p.awayTeam.name}`).join(' | ')}<br>
+            Últimos encuentros de ${partido.awayTeam.name}: ${enfrentamientosVisitante.slice(0, 3).map(p => `${p.homeTeam.name} vs ${p.awayTeam.name}`).join(' | ')}
+          </div>
           <span class="favorito" onclick="marcarFavorito(this)">⭐</span>
           <div class="encuesta">
             <button onclick="votar('${partido.homeTeam.name}')">${partido.homeTeam.name}</button>
@@ -328,3 +352,4 @@
   </script>
 </body>
 </html>
+
