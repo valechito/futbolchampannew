@@ -28,6 +28,7 @@
     nav ul {
       list-style-type: none;
       padding: 0;
+      text-align: center;
     }
 
     nav ul li {
@@ -63,6 +64,13 @@
       padding: 10px;
       margin: 5px;
       box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .partidos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
     }
 
     .en-vivo {
@@ -72,6 +80,14 @@
       padding: 5px;
       border-radius: 5px;
       margin-left: 10px;
+    }
+
+    .partido-dia {
+      background-color: #add8e6;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 5px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     }
 
     .noticia {
@@ -106,7 +122,7 @@
   <main>
     <section id="calendario">
       <h2>Calendario de partidos</h2>
-      <div id="calendarioPartidos">
+      <div id="calendarioPartidos" class="partidos-grid">
         <!-- Los partidos se mostrarán aquí -->
       </div>
     </section>
@@ -180,22 +196,14 @@
       enfrentamientosDiv.innerHTML = '';
 
       const hoy = new Date().toISOString().split('T')[0];
-
       const partidosHoy = partidos.filter(partido => partido.utcDate.startsWith(hoy));
 
       partidosHoy.forEach(partido => {
         const div = document.createElement('div');
-        div.classList.add('partido');
-
-        const partidoEnVivo = partido.status === 'LIVE';
-        const marcador = partido.score.fullTime.homeTeam !== null ? `
-          Marcador: ${partido.score.fullTime.homeTeam} - ${partido.score.fullTime.awayTeam}<br>` : '';
-        const minutos = partidoEnVivo ? `Minutos: ${partido.minute || 'N/A'}<br>` : '';
-
+        div.classList.add('partido-dia');
         div.innerHTML = `
           <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
-          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
-          ${partidoEnVivo ? `<span class="en-vivo">En Vivo</span><br>${marcador}${minutos}` : ''}
+          Hora: ${new Date(partido.utcDate).toLocaleTimeString()}
         `;
         enfrentamientosDiv.appendChild(div);
       });
@@ -240,11 +248,8 @@
       }
     }
 
-    // Llamamos a las funciones para obtener los datos al cargar la página
     obtenerPartidos();
     obtenerNoticias();
   </script>
 </body>
 </html>
-
-
