@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fútbol Champán</title>
   <style>
+    /* Estilos previos del código */
     body {
       font-family: 'Arial', sans-serif;
       background-color: #f0f8ff;
@@ -236,51 +237,6 @@
       background-color: #e55d52;
     }
 
-    .enfrentamientos-dia-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-    }
-
-    .enfrentamientos-dia-container .columna {
-      width: 48%; /* Cada columna ocupa casi la mitad del espacio */
-      margin-bottom: 20px;
-    }
-
-    section {
-      border: 2px solid black;
-    }
-
-    section h2 {
-      color: yellow;
-      background-color: black;
-      padding: 10px;
-      text-align: center;
-      border-radius: 5px;
-    }
-
-    .partido-dia {
-      background-color: #1e2a3a;
-      color: white;
-      border-radius: 10px;
-      padding: 15px;
-      margin: 10px 0;
-      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .partido-dia .info {
-      flex: 1;
-      margin-left: 15px;
-    }
-
-    .partido-dia .info strong {
-      display: block;
-      font-size: 1.2em;
-      margin-bottom: 5px;
-    }
   </style>
 </head>
 <body>
@@ -301,34 +257,6 @@
       <h2>Calendario de partidos</h2>
       <div id="calendarioPartidos">
         <!-- Los partidos se mostrarán aquí -->
-      </div>
-    </section>
-
-    <section id="enfrentamientos">
-      <h2>Enfrentamientos del día</h2>
-      <div class="enfrentamientos-dia-container">
-        <div class="columna" id="partidosDia1">
-          <!-- Primera fila de enfrentamientos -->
-        </div>
-        <div class="columna" id="partidosDia2">
-          <!-- Segunda fila de enfrentamientos -->
-        </div>
-      </div>
-    </section>
-
-    <section id="noticias">
-      <h2>Noticias de fútbol</h2>
-      <div id="contenedorNoticias">
-        <!-- Las noticias se mostrarán aquí -->
-      </div>
-    </section>
-
-    <section id="debates">
-      <h2>Caja de debates</h2>
-      <div>
-        <input type="text" id="comentarioInput" placeholder="Deja tu comentario...">
-        <button onclick="agregarComentario()">Agregar comentario</button>
-        <ul id="listaComentarios"></ul>
       </div>
     </section>
   </main>
@@ -353,7 +281,6 @@
         });
         const data = await response.json();
         mostrarPartidosCalendario(data.response);
-        mostrarEnfrentamientosDelDia(data.response);
       } catch (error) {
         console.error('Error al obtener los partidos:', error);
       }
@@ -371,54 +298,35 @@
       partidos.forEach(partido => {
         const div = document.createElement('div');
         div.classList.add('partido');
+        
+        let estadoPartido = '';
+        const horaActual = new Date().getTime();
+        const horaPartido = new Date(partido.fixture.date).getTime();
+
+        if (horaPartido < horaActual) {
+          estadoPartido = 'Terminado';
+          div.style.backgroundColor = 'red'; // Color rojo para terminado
+        } else if (horaPartido === horaActual) {
+          estadoPartido = 'En Juego';
+        } else {
+          estadoPartido = 'Recordar';
+        }
+
         div.innerHTML = `
           <strong>${partido.teams.home.name} vs ${partido.teams.away.name}</strong><br>
           Fecha: ${new Date(partido.fixture.date).toLocaleString()}<br>
-          Estado: ${partido.fixture.status.long}
+          Estado: <span style="color: ${estadoPartido === 'Terminado' ? 'red' : 'yellow'}">${estadoPartido}</span>
         `;
         calendarioDiv.appendChild(div);
       });
     }
 
-    function mostrarEnfrentamientosDelDia(partidos) {
-      const enfrentamientosDiv1 = document.getElementById('partidosDia1');
-      const enfrentamientosDiv2 = document.getElementById('partidosDia2');
-      enfrentamientosDiv1.innerHTML = '';
-      enfrentamientosDiv2.innerHTML = '';
-
-      partidos.forEach((partido, index) => {
-        const div = document.createElement('div');
-        div.classList.add('partido-dia');
-
-        const estado = partido.fixture.status.elapsed ? `(${partido.fixture.status.elapsed} min)` : '';
-        const enVivo = partido.fixture.status.short === '1H' || partido.fixture.status.short === '2H';
-
-        div.innerHTML = `
-          <div class="info">
-            <strong>${partido.teams.home.name} ${partido.goals.home || 0} - ${partido.goals.away || 0} ${partido.teams.away.name}</strong>
-            ${enVivo ? `<span class="en-vivo">En Vivo ${estado}</span>` : ''}
-          </div>
-          <button onclick="recordarPartido('${partido.teams.home.name}', '${partido.teams.away.name}', '${partido.fixture.date}')">Recordar</button>
-        `;
-
-        if (index % 2 === 0) {
-          enfrentamientosDiv1.appendChild(div);
-        } else {
-          enfrentamientosDiv2.appendChild(div);
-        }
-      });
-    }
-
-    function recordarPartido(local, visitante, fecha) {
-      alert(`¡Recordatorio creado para el partido ${local} vs ${visitante} el ${new Date(fecha).toLocaleString()}!`);
-    }
-
     function alternarModoOscuro() {
       document.body.classList.toggle('modo-oscuro');
-      document.querySelectorAll('section').forEach(section => section.classList.toggle('modo-oscuro'));
     }
 
     obtenerPartidos();
   </script>
 </body>
 </html>
+
