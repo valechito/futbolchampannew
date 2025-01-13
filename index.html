@@ -101,7 +101,8 @@
     }
 
     .partido-dia {
-      background-color: #f9f9f9;
+      background-color: #1e2a3a; /* Color azul oscuro */
+      color: white;
       border-radius: 10px;
       padding: 15px;
       margin: 10px 0;
@@ -280,65 +281,54 @@
 
   <script>
     const apiKeyFootball = '9d228391755844b2b40f411a09232e2d';
-    const corsProxy = 'https://cors-anywhere.herokuapp.com/'; // Usamos el proxy de CORS Anywhere
+    const apiKeyOdds = '40d9e307c3ae68138987f548a30181c2'; // Sustituye con tu API key de OddsAPI
 
     async function obtenerPartidos() {
       try {
         const url = 'https://api.football-data.org/v4/matches';
-        const response = await fetch(corsProxy + url, {
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        const response = await fetch(proxyUrl + url, {
           headers: { 'X-Auth-Token': apiKeyFootball }
         });
         const data = await response.json();
 
-        const clasificacion = await obtenerClasificacion();
-
-        mostrarCalendario(data.matches, clasificacion);
-        mostrarEnfrentamientosDelDia(data.matches, clasificacion);
-        obtenerNoticias();
+        mostrarCalendario(data.matches);
+        mostrarEnfrentamientosDelDia(data.matches);
       } catch (error) {
         console.error('Error al obtener los partidos:', error);
       }
     }
 
-    async function obtenerClasificacion() {
+    async function obtenerApuestas() {
       try {
-        const url = 'https://api.football-data.org/v4/competitions/PL/standings'; // Ajusta esta URL si es necesario
-        const response = await fetch(corsProxy + url, {
-          headers: { 'X-Auth-Token': apiKeyFootball }
-        });
+        const url = `https://api.the-odds-api.com/v4/sports/soccer/odds/?apiKey=${apiKeyOdds}&regions=us&markets=h2h,spreads&oddsFormat=decimal`;
+        const response = await fetch(url);
         const data = await response.json();
-        return data.standings[0].table; // Devuelve la clasificación de la liga (Premier League en este caso)
+        return data;
       } catch (error) {
-        console.error('Error al obtener la clasificación:', error);
+        console.error('Error al obtener las apuestas:', error);
       }
     }
 
-    function mostrarCalendario(partidos, clasificacion) {
+    function mostrarCalendario(partidos) {
       const calendarioDiv = document.getElementById('calendarioPartidos');
       calendarioDiv.innerHTML = '';
 
       partidos.forEach((partido) => {
         const div = document.createElement('div');
         div.classList.add('partido');
-        
-        // Encuentra las posiciones de los equipos
-        const equipoLocal = clasificacion.find(equipo => equipo.team.name === partido.homeTeam.name);
-        const equipoVisitante = clasificacion.find(equipo => equipo.team.name === partido.awayTeam.name);
 
-        div.innerHTML = `
-          <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
+        div.innerHTML = 
+          `<strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
-          <button onclick="recordarPartido('${partido.homeTeam.name}', '${partido.awayTeam.name}', '${partido.utcDate}')">Recordar</button>
-          <br>
-          <span>Posición: ${equipoLocal ? equipoLocal.position : '?'}</span> vs <span>Posición: ${equipoVisitante ? equipoVisitante.position : '?'}</span>
-        `;
+          <button onclick="recordarPartido('${partido.homeTeam.name}', '${partido.awayTeam.name}', '${partido.utcDate}')">Recordar</button>`;
 
         calendarioDiv.appendChild(div);
       });
     }
 
-    function mostrarEnfrentamientosDelDia(partidos, clasificacion) {
+    function mostrarEnfrentamientosDelDia(partidos) {
       const enfrentamientosDiv = document.getElementById('partidosDia');
       enfrentamientosDiv.innerHTML = '';
 
@@ -346,17 +336,13 @@
         const div = document.createElement('div');
         div.classList.add('partido-dia');
 
-        // Encuentra las posiciones de los equipos
-        const equipoLocal = clasificacion.find(equipo => equipo.team.name === partido.homeTeam.name);
-        const equipoVisitante = clasificacion.find(equipo => equipo.team.name === partido.awayTeam.name);
-
-        div.innerHTML = `
-          <div class="info">
+        div.innerHTML = 
+          `<div class="info">
             <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong>
-            <span class="posicion">Posiciones: ${equipoLocal ? equipoLocal.position : '?'} vs ${equipoVisitante ? equipoVisitante.position : '?'}</span>
+            <span class="posicion">Posiciones: ${partido.homeTeam.position || '?'} vs ${partido.awayTeam.position || '?'}</span>
+            <span class="apuestas">Apuestas: <strong>1.5</strong> (Equipo A), <strong>2.3</strong> (Empate), <strong>5.0</strong> (Equipo B)</span>
           </div>
-          <button onclick="recordarPartido('${partido.homeTeam.name}', '${partido.awayTeam.name}', '${partido.utcDate}')">Recordar</button>
-        `;
+          <button onclick="recordarPartido('${partido.homeTeam.name}', '${partido.awayTeam.name}', '${partido.utcDate}')">Recordar</button>`;
 
         enfrentamientosDiv.appendChild(div);
       });
@@ -370,6 +356,12 @@
       document.body.classList.toggle('modo-oscuro');
       document.querySelectorAll('section').forEach(section => section.classList.toggle('modo-oscuro'));
     }
+
+    obtenerPartidos();
+    obtenerApuestas();
+  </script>
+</body>
+</html>
 
     obtenerPartidos();
   </script>
