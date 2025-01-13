@@ -101,7 +101,7 @@
     }
 
     .partido-dia {
-      background-color: #1e2a3a; /* Color azul oscuro */
+      background-color: #1e2a3a;
       color: white;
       border-radius: 10px;
       padding: 15px;
@@ -281,7 +281,7 @@
 
   <script>
     const apiKeyFootball = '9d228391755844b2b40f411a09232e2d';
-    const apiKeyOdds = '40d9e307c3ae68138987f548a30181c2'; // Sustituye con tu API key de OddsAPI
+    const apiKeyOdds = '40d9e307c3ae68138987f548a30181c2'; // Reemplaza con tu clave API de OddsAPI
 
     async function obtenerPartidos() {
       try {
@@ -328,11 +328,13 @@
       });
     }
 
-    function mostrarEnfrentamientosDelDia(partidos) {
+    async function mostrarEnfrentamientosDelDia(partidos) {
       const enfrentamientosDiv = document.getElementById('partidosDia');
       enfrentamientosDiv.innerHTML = '';
 
-      partidos.forEach((partido) => {
+      for (let partido of partidos) {
+        const apuestas = await obtenerApuestas();
+        
         const div = document.createElement('div');
         div.classList.add('partido-dia');
 
@@ -340,12 +342,16 @@
           `<div class="info">
             <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong>
             <span class="posicion">Posiciones: ${partido.homeTeam.position || '?'} vs ${partido.awayTeam.position || '?'}</span>
-            <span class="apuestas">Apuestas: <strong>1.5</strong> (Equipo A), <strong>2.3</strong> (Empate), <strong>5.0</strong> (Equipo B)</span>
+            <span class="apuestas">
+              Apuestas: <strong>${apuestas[0].bookmakers[0].markets[0].outcomes[0].price}</strong> (Equipo A), 
+                        <strong>${apuestas[0].bookmakers[0].markets[0].outcomes[1].price}</strong> (Empate), 
+                        <strong>${apuestas[0].bookmakers[0].markets[0].outcomes[2].price}</strong> (Equipo B)
+            </span>
           </div>
           <button onclick="recordarPartido('${partido.homeTeam.name}', '${partido.awayTeam.name}', '${partido.utcDate}')">Recordar</button>`;
 
         enfrentamientosDiv.appendChild(div);
-      });
+      }
     }
 
     function recordarPartido(local, visitante, fecha) {
@@ -356,12 +362,6 @@
       document.body.classList.toggle('modo-oscuro');
       document.querySelectorAll('section').forEach(section => section.classList.toggle('modo-oscuro'));
     }
-
-    obtenerPartidos();
-    obtenerApuestas();
-  </script>
-</body>
-</html>
 
     obtenerPartidos();
   </script>
