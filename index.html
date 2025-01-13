@@ -284,7 +284,7 @@
 
     async function obtenerPartidos() {
       try {
-        const url = https:"//v3.football.api-sports.io/fixtures?date=${new Date().toISOString().split('T')[0]}";
+        const url = https "//v3.football.api-sports.io/fixtures?date=${new Date().toISOString().split('T')[0]}";
         const response = await fetch(url, {
           headers: {
             'x-rapidapi-host': 'v3.football.api-sports.io',
