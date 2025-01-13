@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fútbol Champán</title>
   <style>
-    /* Estilos previos del código */
     body {
       font-family: 'Arial', sans-serif;
       background-color: #f0f8ff;
@@ -186,18 +185,11 @@
       background-color: black;
       padding: 10px;
       border-radius: 8px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 10px;
     }
 
     #calendarioPartidos .partido {
       background-color: #2c2c2c;
       color: yellow;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      text-align: center;
     }
 
     .resultado {
@@ -236,7 +228,6 @@
     .modo-oscuro-toggle:hover {
       background-color: #e55d52;
     }
-
   </style>
 </head>
 <body>
@@ -255,8 +246,31 @@
   <main>
     <section id="calendario">
       <h2>Calendario de partidos</h2>
-      <div id="calendarioPartidos">
+      <div id="calendarioPartidos" class="partidos-grid">
         <!-- Los partidos se mostrarán aquí -->
+      </div>
+    </section>
+
+    <section id="enfrentamientos">
+      <h2>Enfrentamientos del día</h2>
+      <div id="partidosDia" class="partidos-grid">
+        <!-- Los enfrentamientos del día se mostrarán aquí -->
+      </div>
+    </section>
+
+    <section id="noticias">
+      <h2>Noticias de fútbol</h2>
+      <div id="contenedorNoticias">
+        <!-- Las noticias se mostrarán aquí -->
+      </div>
+    </section>
+
+    <section id="debates">
+      <h2>Caja de debates</h2>
+      <div>
+        <input type="text" id="comentarioInput" placeholder="Deja tu comentario...">
+        <button onclick="agregarComentario()">Agregar comentario</button>
+        <ul id="listaComentarios"></ul>
       </div>
     </section>
   </main>
@@ -280,53 +294,69 @@
           }
         });
         const data = await response.json();
-        mostrarPartidosCalendario(data.response);
+        mostrarCalendario(data.response);
+        mostrarEnfrentamientosDelDia(data.response);
       } catch (error) {
         console.error('Error al obtener los partidos:', error);
       }
     }
 
-    function mostrarPartidosCalendario(partidos) {
+    function mostrarCalendario(partidos) {
       const calendarioDiv = document.getElementById('calendarioPartidos');
-      calendarioDiv.innerHTML = ''; // Limpiamos el contenido previo
+      calendarioDiv.innerHTML = '';
 
-      if (partidos.length === 0) {
-        calendarioDiv.innerHTML = '<p>No hay partidos para mostrar hoy.</p>';
-        return;
-      }
-
-      partidos.forEach(partido => {
+      partidos.forEach((partido) => {
         const div = document.createElement('div');
         div.classList.add('partido');
-        
-        let estadoPartido = '';
-        const horaActual = new Date().getTime();
-        const horaPartido = new Date(partido.fixture.date).getTime();
 
-        if (horaPartido < horaActual) {
-          estadoPartido = 'Terminado';
-          div.style.backgroundColor = 'red'; // Color rojo para terminado
-        } else if (horaPartido === horaActual) {
-          estadoPartido = 'En Juego';
-        } else {
-          estadoPartido = 'Recordar';
-        }
+        // Comprobar si el partido está terminado
+        const terminado = partido.fixture.status.short === 'FT'; // "FT" es el código para "Finalizado"
 
         div.innerHTML = `
           <strong>${partido.teams.home.name} vs ${partido.teams.away.name}</strong><br>
-          Fecha: ${new Date(partido.fixture.date).toLocaleString()}<br>
-          Estado: <span style="color: ${estadoPartido === 'Terminado' ? 'red' : 'yellow'}">${estadoPartido}</span>
+          Fecha: ${new Date(partido.fixture.date).toLocaleDateString()}<br>
+          Hora: ${new Date(partido.fixture.date).toLocaleTimeString()}<br>
+          ${terminado 
+            ? `<span style="color: red; font-weight: bold;">Terminado</span>` 
+            : `<button onclick="recordarPartido('${partido.teams.home.name}', '${partido.teams.away.name}', '${partido.fixture.date}')">Recordar</button>`}
         `;
+
         calendarioDiv.appendChild(div);
       });
     }
 
+    function mostrarEnfrentamientosDelDia(partidos) {
+      const enfrentamientosDiv = document.getElementById('partidosDia');
+      enfrentamientosDiv.innerHTML = '';
+
+      partidos.forEach((partido) => {
+        const div = document.createElement('div');
+        div.classList.add('partido-dia');
+
+        const estado = partido.fixture.status.elapsed ? `(${partido.fixture.status.elapsed} min)` : '';
+        const enVivo = partido.fixture.status.short === '1H' || partido.fixture.status.short === '2H';
+
+        div.innerHTML = `
+          <div class="info">
+            <strong>${partido.teams.home.name} ${partido.goals.home || 0} - ${partido.goals.away || 0} ${partido.teams.away.name}</strong>
+            ${enVivo ? `<span class="en-vivo">En Vivo ${estado}</span>` : ''}
+          </div>
+          <button onclick="recordarPartido('${partido.teams.home.name}', '${partido.teams.away.name}', '${partido.fixture.date}')">Recordar</button>`;
+
+        enfrentamientosDiv.appendChild(div);
+      });
+    }
+
+    function recordarPartido(local, visitante, fecha) {
+      alert(`¡Recordatorio creado para el partido ${local} vs ${visitante} el ${new Date(fecha).toLocaleString()}!`);
+    }
+
     function alternarModoOscuro() {
       document.body.classList.toggle('modo-oscuro');
+      document.querySelectorAll('section').forEach(section => section.classList.toggle('modo-oscuro'));
     }
 
     obtenerPartidos();
   </script>
 </body>
 </html>
-
