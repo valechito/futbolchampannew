@@ -228,6 +228,52 @@
     .modo-oscuro-toggle:hover {
       background-color: #e55d52;
     }
+
+    .enfrentamientos-dia-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .enfrentamientos-dia-container .columna {
+      width: 48%; /* Cada columna ocupa casi la mitad del espacio */
+      margin-bottom: 20px;
+    }
+
+    section {
+      border: 2px solid black;
+    }
+
+    section h2 {
+      color: yellow;
+      background-color: black;
+      padding: 10px;
+      text-align: center;
+      border-radius: 5px;
+    }
+
+    .partido-dia {
+      background-color: #1e2a3a;
+      color: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px 0;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .partido-dia .info {
+      flex: 1;
+      margin-left: 15px;
+    }
+
+    .partido-dia .info strong {
+      display: block;
+      font-size: 1.2em;
+      margin-bottom: 5px;
+    }
   </style>
 </head>
 <body>
@@ -253,8 +299,13 @@
 
     <section id="enfrentamientos">
       <h2>Enfrentamientos del día</h2>
-      <div id="partidosDia" class="partidos-grid">
-        <!-- Los enfrentamientos del día se mostrarán aquí -->
+      <div class="enfrentamientos-dia-container">
+        <div class="columna" id="partidosDia1">
+          <!-- Primera fila de enfrentamientos -->
+        </div>
+        <div class="columna" id="partidosDia2">
+          <!-- Segunda fila de enfrentamientos -->
+        </div>
       </div>
     </section>
 
@@ -294,42 +345,19 @@
           }
         });
         const data = await response.json();
-        mostrarCalendario(data.response);
         mostrarEnfrentamientosDelDia(data.response);
       } catch (error) {
         console.error('Error al obtener los partidos:', error);
       }
     }
 
-    function mostrarCalendario(partidos) {
-      const calendarioDiv = document.getElementById('calendarioPartidos');
-      calendarioDiv.innerHTML = '';
-
-      partidos.forEach((partido) => {
-        const div = document.createElement('div');
-        div.classList.add('partido');
-
-        // Comprobar si el partido está terminado
-        const terminado = partido.fixture.status.short === 'FT'; // "FT" es el código para "Finalizado"
-
-        div.innerHTML = `
-          <strong>${partido.teams.home.name} vs ${partido.teams.away.name}</strong><br>
-          Fecha: ${new Date(partido.fixture.date).toLocaleDateString()}<br>
-          Hora: ${new Date(partido.fixture.date).toLocaleTimeString()}<br>
-          ${terminado 
-            ? `<span style="color: red; font-weight: bold;">Terminado</span>` 
-            : `<button onclick="recordarPartido('${partido.teams.home.name}', '${partido.teams.away.name}', '${partido.fixture.date}')">Recordar</button>`}
-        `;
-
-        calendarioDiv.appendChild(div);
-      });
-    }
-
     function mostrarEnfrentamientosDelDia(partidos) {
-      const enfrentamientosDiv = document.getElementById('partidosDia');
-      enfrentamientosDiv.innerHTML = '';
+      const enfrentamientosDiv1 = document.getElementById('partidosDia1');
+      const enfrentamientosDiv2 = document.getElementById('partidosDia2');
+      enfrentamientosDiv1.innerHTML = '';
+      enfrentamientosDiv2.innerHTML = '';
 
-      partidos.forEach((partido) => {
+      partidos.forEach((partido, index) => {
         const div = document.createElement('div');
         div.classList.add('partido-dia');
 
@@ -343,7 +371,11 @@
           </div>
           <button onclick="recordarPartido('${partido.teams.home.name}', '${partido.teams.away.name}', '${partido.fixture.date}')">Recordar</button>`;
 
-        enfrentamientosDiv.appendChild(div);
+        if (index % 2 === 0) {
+          enfrentamientosDiv1.appendChild(div);
+        } else {
+          enfrentamientosDiv2.appendChild(div);
+        }
       });
     }
 
