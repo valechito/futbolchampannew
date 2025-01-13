@@ -225,63 +225,6 @@
     .modo-oscuro-toggle:hover {
       background-color: #e55d52;
     }
-
-    #chatContainer {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      background-color: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      width: 300px;
-      max-height: 400px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #chatHeader {
-      background-color: #ff6f61;
-      color: white;
-      padding: 10px;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    #chatMessages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 10px;
-      background-color: #f9f9f9;
-    }
-
-    #chatInputContainer {
-      display: flex;
-      padding: 10px;
-      border-top: 1px solid #ccc;
-      background-color: #fff;
-    }
-
-    #chatInput {
-      flex: 1;
-      padding: 5px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      margin-right: 5px;
-    }
-
-    #chatSendButton {
-      background-color: #ff6f61;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    #chatSendButton:hover {
-      background-color: #e55d52;
-    }
   </style>
 </head>
 <body>
@@ -335,16 +278,6 @@
 
   <button class="modo-oscuro-toggle" onclick="alternarModoOscuro()">🌓</button>
 
-  <!-- Chat GPT Container -->
-  <div id="chatContainer">
-    <div id="chatHeader">Chat GPT</div>
-    <div id="chatMessages"></div>
-    <div id="chatInputContainer">
-      <input type="text" id="chatInput" placeholder="Escribe tu mensaje...">
-      <button id="chatSendButton" onclick="enviarMensajeGPT()">Enviar</button>
-    </div>
-  </div>
-
   <script>
     const apiKeyFootball = '9d228391755844b2b40f411a09232e2d';
 
@@ -372,12 +305,12 @@
         const div = document.createElement('div');
         div.classList.add('partido');
 
-        div.innerHTML = `
+        div.innerHTML = 
           <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
           <button onclick="recordarPartido('${partido.homeTeam.name}', '${partido.awayTeam.name}', '${partido.utcDate}')">Recordar</button>
-        `;
+        ;
 
         calendarioDiv.appendChild(div);
       });
@@ -391,66 +324,25 @@
         const div = document.createElement('div');
         div.classList.add('partido-dia');
 
-        div.innerHTML = `
+        div.innerHTML = 
           <div class="info">
             <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong>
             <span class="posicion">Posiciones: ${partido.homeTeam.position || '?'} vs ${partido.awayTeam.position || '?'}</span>
           </div>
           <button onclick="recordarPartido('${partido.homeTeam.name}', '${partido.awayTeam.name}', '${partido.utcDate}')">Recordar</button>
-        `;
+        ;
 
         enfrentamientosDiv.appendChild(div);
       });
     }
 
     function recordarPartido(local, visitante, fecha) {
-      alert(`¡Recordatorio creado para el partido ${local} vs ${visitante} el ${new Date(fecha).toLocaleString()}!`);
+      alert(¡Recordatorio creado para el partido ${local} vs ${visitante} el ${new Date(fecha).toLocaleString()}!);
     }
 
     function alternarModoOscuro() {
       document.body.classList.toggle('modo-oscuro');
       document.querySelectorAll('section').forEach(section => section.classList.toggle('modo-oscuro'));
-    }
-
-    // Chat GPT functionality
-    async function enviarMensajeGPT() {
-      const chatInput = document.getElementById('chatInput');
-      const chatMessages = document.getElementById('chatMessages');
-
-      const mensajeUsuario = chatInput.value;
-      if (!mensajeUsuario) return;
-
-      // Mostrar mensaje del usuario
-      const userMessage = document.createElement('div');
-      userMessage.textContent = `Tú: ${mensajeUsuario}`;
-      chatMessages.appendChild(userMessage);
-
-      // Llamada a ChatGPT
-      const responseMessage = document.createElement('div');
-      responseMessage.textContent = 'Chat GPT está escribiendo...';
-      chatMessages.appendChild(responseMessage);
-
-      try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer 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` // Sustituir por tu clave API de OpenAI
-          },
-          body: JSON.stringify({
-            model: 'gpt-3.5-turbo',
-            messages: [{ role: 'user', content: mensajeUsuario }]
-          })
-        });
-
-        const data = await response.json();
-        responseMessage.textContent = `Chat GPT: ${data.choices[0].message.content}`;
-      } catch (error) {
-        responseMessage.textContent = 'Error al conectar con Chat GPT';
-        console.error('Error:', error);
-      }
-
-      chatInput.value = '';
     }
 
     obtenerPartidos();
