@@ -305,12 +305,12 @@
         const div = document.createElement('div');
         div.classList.add('partido');
 
-        div.innerHTML = 
+        div.innerHTML = `
           <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong><br>
           Fecha: ${new Date(partido.utcDate).toLocaleDateString()}<br>
           Hora: ${new Date(partido.utcDate).toLocaleTimeString()}<br>
           <button onclick="recordarPartido('${partido.homeTeam.name}', '${partido.awayTeam.name}', '${partido.utcDate}')">Recordar</button>
-        ;
+        `;
 
         calendarioDiv.appendChild(div);
       });
@@ -324,20 +324,20 @@
         const div = document.createElement('div');
         div.classList.add('partido-dia');
 
-        div.innerHTML = 
+        div.innerHTML = `
           <div class="info">
             <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong>
             <span class="posicion">Posiciones: ${partido.homeTeam.position || '?'} vs ${partido.awayTeam.position || '?'}</span>
           </div>
           <button onclick="recordarPartido('${partido.homeTeam.name}', '${partido.awayTeam.name}', '${partido.utcDate}')">Recordar</button>
-        ;
+        `;
 
         enfrentamientosDiv.appendChild(div);
       });
     }
 
     function recordarPartido(local, visitante, fecha) {
-      alert(¡Recordatorio creado para el partido ${local} vs ${visitante} el ${new Date(fecha).toLocaleString()}!);
+      alert(`¡Recordatorio creado para el partido ${local} vs ${visitante} el ${new Date(fecha).toLocaleString()}!`);
     }
 
     function alternarModoOscuro() {
