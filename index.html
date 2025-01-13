@@ -226,9 +226,43 @@
     .modo-oscuro-toggle:hover {
       background-color: #e55d52;
     }
+
+    /* Estilos para la pantalla de carga */
+    #pantallaCarga {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #1a1a1a; /* Fondo oscuro */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #pantallaCarga img {
+      width: 200px;
+      height: auto;
+      animation: fade-in-out 2s infinite;
+    }
+
+    @keyframes fade-in-out {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Pantalla de carga -->
+  <div id="pantallaCarga">
+    <img src="https://raw.githubusercontent.com/valechito/futbolchampannew/refs/heads/main/loading-screen.png" alt="Cargando...">
+  </div>
+
   <header>
     <h1>Fútbol Champán</h1>
     <nav>
@@ -296,32 +330,32 @@
         mostrarEnfrentamientosDelDia(data.response);
       } catch (error) {
         console.error('Error al obtener los partidos:', error);
+      } finally {
+        // Ocultar pantalla de carga
+        document.getElementById("pantallaCarga").style.display = "none";
       }
     }
 
-function mostrarCalendario(partidos) {
-  const calendarioDiv = document.getElementById('calendarioPartidos');
-  calendarioDiv.innerHTML = '';
+    function mostrarCalendario(partidos) {
+      const calendarioDiv = document.getElementById('calendarioPartidos');
+      calendarioDiv.innerHTML = '';
 
-  partidos.forEach((partido) => {
-    const div = document.createElement('div');
-    div.classList.add('partido');
+      partidos.forEach((partido) => {
+        const div = document.createElement('div');
+        div.classList.add('partido');
 
-    // Comprobar si el partido está terminado
-    const terminado = partido.fixture.status.short === 'FT'; // "FT" es el código para "Finalizado"
+        const terminado = partido.status.short === 'FT';
+        const resultado = partido.goals.homeTeam + ' - ' + partido.goals.awayTeam;
 
-    div.innerHTML = `
-      <strong>${partido.teams.home.name} vs ${partido.teams.away.name}</strong><br>
-      Fecha: ${new Date(partido.fixture.date).toLocaleDateString()}<br>
-      Hora: ${new Date(partido.fixture.date).toLocaleTimeString()}<br>
-      ${terminado 
-        ? `<span style="color: red; font-weight: bold;">Terminado</span>` 
-        : `<button onclick="recordarPartido('${partido.teams.home.name}', '${partido.teams.away.name}', '${partido.fixture.date}')">Recordar</button>`}
-    `;
-
-    calendarioDiv.appendChild(div);
-  });
-}
+        div.innerHTML = `
+          <h3>${partido.league.name}</h3>
+          <p>${partido.teams.home.name} vs ${partido.teams.away.name}</p>
+          <p>${partido.fixture.date}</p>
+          <p class="resultado ${terminado ? 'ganado' : 'perdido'}">${resultado}</p>
+        `;
+        calendarioDiv.appendChild(div);
+      });
+    }
 
     function mostrarEnfrentamientosDelDia(partidos) {
       const enfrentamientosDiv = document.getElementById('partidosDia');
@@ -331,30 +365,43 @@ function mostrarCalendario(partidos) {
         const div = document.createElement('div');
         div.classList.add('partido-dia');
 
-        const estado = partido.fixture.status.elapsed ? `(${partido.fixture.status.elapsed} min)` : '';
-        const enVivo = partido.fixture.status.short === '1H' || partido.fixture.status.short === '2H';
+        const enVivo = partido.status.short === 'LIVE' ? '<span class="en-vivo">En vivo</span>' : '';
 
         div.innerHTML = `
           <div class="info">
-            <strong>${partido.teams.home.name} ${partido.goals.home || 0} - ${partido.goals.away || 0} ${partido.teams.away.name}</strong>
-            ${enVivo ? `<span class="en-vivo">En Vivo ${estado}</span>` : ''}
+            <strong>${partido.teams.home.name} vs ${partido.teams.away.name}</strong>
+            <p class="posicion">${partido.league.name}</p>
           </div>
-          <button onclick="recordarPartido('${partido.teams.home.name}', '${partido.teams.away.name}', '${partido.fixture.date}')">Recordar</button>`;
-
+          <div class="resultado">${partido.goals.homeTeam} - ${partido.goals.awayTeam}</div>
+          ${enVivo}
+        `;
         enfrentamientosDiv.appendChild(div);
       });
     }
 
-    function recordarPartido(local, visitante, fecha) {
-      alert(`¡Recordatorio creado para el partido ${local} vs ${visitante} el ${new Date(fecha).toLocaleString()}!`);
-    }
+    // Llamada para obtener los partidos
+    obtenerPartidos();
 
+    // Modo oscuro
     function alternarModoOscuro() {
       document.body.classList.toggle('modo-oscuro');
-      document.querySelectorAll('section').forEach(section => section.classList.toggle('modo-oscuro'));
+      document.querySelectorAll('section').forEach((section) => {
+        section.classList.toggle('modo-oscuro');
+      });
     }
 
-    obtenerPartidos();
+    // Función para agregar un comentario
+    function agregarComentario() {
+      const input = document.getElementById('comentarioInput');
+      const comentario = input.value;
+      if (comentario) {
+        const listaComentarios = document.getElementById('listaComentarios');
+        const nuevoComentario = document.createElement('li');
+        nuevoComentario.textContent = comentario;
+        listaComentarios.appendChild(nuevoComentario);
+        input.value = '';
+      }
+    }
   </script>
 </body>
 </html>
