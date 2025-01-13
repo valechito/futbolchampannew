@@ -281,7 +281,7 @@
 
   <script>
     const apiKeyFootball = '9d228391755844b2b40f411a09232e2d';
-    const apiKeyOdds = '40d9e307c3ae68138987f548a30181c2'; // Reemplaza con tu clave API de OddsAPI
+    const apiKeyOdds = 'your-odds-api-key'; // Reemplaza con tu clave API de OddsAPI
 
     async function obtenerPartidos() {
       try {
@@ -341,12 +341,13 @@
         div.innerHTML = 
           `<div class="info">
             <strong>${partido.homeTeam.name} vs ${partido.awayTeam.name}</strong>
-            <span class="posicion">Posiciones: ${partido.homeTeam.position || '?'} vs ${partido.awayTeam.position || '?'}</span>
-            <span class="apuestas">
-              Apuestas: <strong>${apuestas[0].bookmakers[0].markets[0].outcomes[0].price}</strong> (Equipo A), 
-                        <strong>${apuestas[0].bookmakers[0].markets[0].outcomes[1].price}</strong> (Empate), 
-                        <strong>${apuestas[0].bookmakers[0].markets[0].outcomes[2].price}</strong> (Equipo B)
-            </span>
+            <div class="posicion">Posiciones: N/D vs N/D</div>
+            <div class="apuestas">
+              Apuestas: 
+              <strong>${partido.homeTeam.name}: ${apuestas[0]?.bookmakers[0]?.markets[0]?.outcomes[0]?.price || 'N/A'}</strong>, 
+              <strong>Empate: ${apuestas[0]?.bookmakers[0]?.markets[0]?.outcomes[1]?.price || 'N/A'}</strong>, 
+              <strong>${partido.awayTeam.name}: ${apuestas[0]?.bookmakers[0]?.markets[0]?.outcomes[2]?.price || 'N/A'}</strong>
+            </div>
           </div>
           <button onclick="recordarPartido('${partido.homeTeam.name}', '${partido.awayTeam.name}', '${partido.utcDate}')">Recordar</button>`;
 
