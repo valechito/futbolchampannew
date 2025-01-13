@@ -185,11 +185,18 @@
       background-color: black;
       padding: 10px;
       border-radius: 8px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
     }
 
     #calendarioPartidos .partido {
       background-color: #2c2c2c;
       color: yellow;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      text-align: center;
     }
 
     .resultado {
@@ -292,7 +299,7 @@
   <main>
     <section id="calendario">
       <h2>Calendario de partidos</h2>
-      <div id="calendarioPartidos" class="partidos-grid">
+      <div id="calendarioPartidos">
         <!-- Los partidos se mostrarán aquí -->
       </div>
     </section>
@@ -345,10 +352,32 @@
           }
         });
         const data = await response.json();
+        mostrarPartidosCalendario(data.response);
         mostrarEnfrentamientosDelDia(data.response);
       } catch (error) {
         console.error('Error al obtener los partidos:', error);
       }
+    }
+
+    function mostrarPartidosCalendario(partidos) {
+      const calendarioDiv = document.getElementById('calendarioPartidos');
+      calendarioDiv.innerHTML = ''; // Limpiamos el contenido previo
+
+      if (partidos.length === 0) {
+        calendarioDiv.innerHTML = '<p>No hay partidos para mostrar hoy.</p>';
+        return;
+      }
+
+      partidos.forEach(partido => {
+        const div = document.createElement('div');
+        div.classList.add('partido');
+        div.innerHTML = `
+          <strong>${partido.teams.home.name} vs ${partido.teams.away.name}</strong><br>
+          Fecha: ${new Date(partido.fixture.date).toLocaleString()}<br>
+          Estado: ${partido.fixture.status.long}
+        `;
+        calendarioDiv.appendChild(div);
+      });
     }
 
     function mostrarEnfrentamientosDelDia(partidos) {
@@ -369,7 +398,8 @@
             <strong>${partido.teams.home.name} ${partido.goals.home || 0} - ${partido.goals.away || 0} ${partido.teams.away.name}</strong>
             ${enVivo ? `<span class="en-vivo">En Vivo ${estado}</span>` : ''}
           </div>
-          <button onclick="recordarPartido('${partido.teams.home.name}', '${partido.teams.away.name}', '${partido.fixture.date}')">Recordar</button>`;
+          <button onclick="recordarPartido('${partido.teams.home.name}', '${partido.teams.away.name}', '${partido.fixture.date}')">Recordar</button>
+        `;
 
         if (index % 2 === 0) {
           enfrentamientosDiv1.appendChild(div);
