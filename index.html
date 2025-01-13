@@ -284,7 +284,7 @@
 
     async function obtenerPartidos() {
       try {
-        const url = https "//v3.football.api-sports.io/fixtures?date=${new Date().toISOString().split('T')[0]}";
+        const url = `https://v3.football.api-sports.io/fixtures?date=${new Date().toISOString().split('T')[0]}`;
         const response = await fetch(url, {
           headers: {
             'x-rapidapi-host': 'v3.football.api-sports.io',
@@ -299,7 +299,7 @@
       }
     }
 
-function mostrarCalendario(partidos) {
+   function mostrarCalendario(partidos) {
   const calendarioDiv = document.getElementById('calendarioPartidos');
   calendarioDiv.innerHTML = '';
 
@@ -310,14 +310,14 @@ function mostrarCalendario(partidos) {
     // Comprobar si el partido está terminado
     const terminado = partido.fixture.status.short === 'FT'; // "FT" es el código para "Finalizado"
 
-    div.innerHTML = 
+    div.innerHTML = `
       <strong>${partido.teams.home.name} vs ${partido.teams.away.name}</strong><br>
       Fecha: ${new Date(partido.fixture.date).toLocaleDateString()}<br>
       Hora: ${new Date(partido.fixture.date).toLocaleTimeString()}<br>
       ${terminado 
-        ? <span style="color: red; font-weight: bold;">Terminado</span> 
-        : <button onclick="recordarPartido('${partido.teams.home.name}', '${partido.teams.away.name}', '${partido.fixture.date}')">Recordar</button>}
-    ;
+        ? `<span style="color: red; font-weight: bold;">Terminado</span>` 
+        : `<button onclick="recordarPartido('${partido.teams.home.name}', '${partido.teams.away.name}', '${partido.fixture.date}')">Recordar</button>`}
+    `;
 
     calendarioDiv.appendChild(div);
   });
@@ -331,22 +331,22 @@ function mostrarCalendario(partidos) {
         const div = document.createElement('div');
         div.classList.add('partido-dia');
 
-        const estado = partido.fixture.status.elapsed ? (${partido.fixture.status.elapsed} min) : '';
+        const estado = partido.fixture.status.elapsed ? `(${partido.fixture.status.elapsed} min)` : '';
         const enVivo = partido.fixture.status.short === '1H' || partido.fixture.status.short === '2H';
 
-        div.innerHTML = 
+        div.innerHTML = `
           <div class="info">
             <strong>${partido.teams.home.name} ${partido.goals.home || 0} - ${partido.goals.away || 0} ${partido.teams.away.name}</strong>
-            ${enVivo ? <span class="en-vivo">En Vivo ${estado}</span> : ''}
+            ${enVivo ? `<span class="en-vivo">En Vivo ${estado}</span>` : ''}
           </div>
-          <button onclick="recordarPartido('${partido.teams.home.name}', '${partido.teams.away.name}', '${partido.fixture.date}')">Recordar</button>;
+          <button onclick="recordarPartido('${partido.teams.home.name}', '${partido.teams.away.name}', '${partido.fixture.date}')">Recordar</button>`;
 
         enfrentamientosDiv.appendChild(div);
       });
     }
 
     function recordarPartido(local, visitante, fecha) {
-      alert(¡Recordatorio creado para el partido ${local} vs ${visitante} el ${new Date(fecha).toLocaleString()}!);
+      alert(`¡Recordatorio creado para el partido ${local} vs ${visitante} el ${new Date(fecha).toLocaleString()}!`);
     }
 
     function alternarModoOscuro() {
